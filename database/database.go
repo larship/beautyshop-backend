@@ -9,7 +9,7 @@ import (
 
 type Database struct {
 	config *config.Config
-	conn *pgx.Conn
+	conn   *pgx.Conn
 }
 
 var DB *Database
@@ -19,7 +19,7 @@ func Init(conf *config.Config) *Database {
 		config: conf,
 	}
 
-	return DB;
+	return DB
 }
 
 func (db *Database) GetConnection() *pgx.Conn {

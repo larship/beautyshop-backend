@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	DatabaseDsn string
+	DatabaseDsn      string
 	WebServerAddress string
 }
 
@@ -17,7 +17,7 @@ func Init() *Config {
 	flag.Parse()
 
 	conf := &Config{
-		DatabaseDsn: *databaseDsn,
+		DatabaseDsn:      *databaseDsn,
 		WebServerAddress: *webServerAddress,
 	}
 

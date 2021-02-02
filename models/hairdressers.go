@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/larship/barbershop/database"
 )
 
@@ -34,4 +35,43 @@ func GetHairdressers(barbershopUuid string) []HaircutType {
 	}
 
 	return haircutTypesList
+}
+
+func AddHairdresser(barbershopUuid string, hairdresserFullName string) bool {
+	var sql string
+	var err error
+	barbershop := GetBarbershopByUuid(barbershopUuid)
+
+	if barbershop == nil {
+		fmt.Printf("При добавлении парикмахера не смогли найти парикмахерскую с uuid = %s", barbershopUuid)
+		return false
+	}
+
+	hairdresserUuid := uuid.New().String()
+
+	sql = `
+		INSERT INTO hairdressers
+		VALUES ($1, $2)
+	`
+
+	_, err = database.DB.GetConnection().Exec(context.Background(), sql, hairdresserUuid, hairdresserFullName)
+
+	if err != nil {
+		fmt.Printf("Ошибка добавления парикмахера: %v", err)
+		return false
+	}
+
+	sql = `
+		INSERT INTO barbershops_hairdressers
+		VALUES ($1, $2)
+	`
+
+	_, err = database.DB.GetConnection().Exec(context.Background(), sql, barbershopUuid, hairdresserUuid)
+
+	if err != nil {
+		fmt.Printf("Ошибка добавления связи парикмахерская-парикмахер: %v", err)
+		return false
+	}
+
+	return true
 }

@@ -15,8 +15,26 @@ type Barbershop struct {
 	Hairdressers []Hairdresser `json:"hairdressers"`
 }
 
+func GetBarbershopByUuid(barbershopUuid string) *Barbershop {
+	var barbershop Barbershop
+
+	sql := `
+		SELECT *
+		FROM barbershops
+		WHERE uuid = $1
+	`
+
+	err := database.DB.GetConnection().QueryRow(context.Background(), sql, barbershopUuid).Scan(&barbershop.Uuid, &barbershop.Name, &barbershop.City, &barbershop.Address)
+	if err != nil {
+		fmt.Printf("Ошибка получения парикмахерской: %v", err)
+		return nil
+	}
+
+	return &barbershop
+}
+
 func GetBarbershops(city string) []Barbershop {
-	var sql string = `
+	sql := `
 		SELECT *
 		FROM barbershops
 		WHERE city = $1

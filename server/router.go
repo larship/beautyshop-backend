@@ -10,6 +10,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/haircut-types", getHaircutTypesHandler)
 	s.router.HandleFunc("/barbershops", getBarbershopsHandler)
 	s.router.HandleFunc("/hairdressers", getHairdressersHandler)
+	s.router.HandleFunc("/hairdressers/add", addHairdresserHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,4 +63,25 @@ func getHairdressersHandler(w http.ResponseWriter, r *http.Request) {
 
 	hairdressersList := models.GetHairdressers(city)
 	ResponseSuccess(w, http.StatusOK, hairdressersList)
+}
+
+func addHairdresserHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, http.StatusBadRequest, "")
+		return
+	}
+
+	barbershopUuid := r.FormValue("barbershopUuid")
+	fullName := r.FormValue("fullName")
+
+	if barbershopUuid == "" || fullName == "" {
+		ResponseError(w, http.StatusBadRequest, "Не указан UUID парикмахерской или Fullname парикмахера")
+		return
+	}
+
+	if models.AddHairdresser(barbershopUuid, fullName) {
+		ResponseSuccess(w, http.StatusOK, "")
+	} else {
+		ResponseError(w, http.StatusBadRequest, "Ошибка при добавлении")
+	}
 }

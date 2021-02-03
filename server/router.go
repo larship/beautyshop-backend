@@ -11,6 +11,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/barbershops", getBarbershopsHandler)
 	s.router.HandleFunc("/hairdressers", getHairdressersHandler)
 	s.router.HandleFunc("/hairdressers/add", addHairdresserHandler)
+	s.router.HandleFunc("/schedule", getScheduleHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,13 +56,13 @@ func getHairdressersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	city := r.URL.Query().Get("barbershop")
-	if city == "" {
+	barbershopUuid := r.URL.Query().Get("barbershop")
+	if barbershopUuid == "" {
 		ResponseError(w, http.StatusBadRequest, "Не указана парикмахерская")
 		return
 	}
 
-	hairdressersList := models.GetHairdressers(city)
+	hairdressersList := models.GetHairdressers(barbershopUuid)
 	ResponseSuccess(w, http.StatusOK, hairdressersList)
 }
 
@@ -84,4 +85,20 @@ func addHairdresserHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		ResponseError(w, http.StatusBadRequest, "Ошибка при добавлении")
 	}
+}
+
+func getScheduleHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		ResponseError(w, http.StatusBadRequest, "")
+		return
+	}
+
+	barbershopUuid := r.FormValue("barbershop")
+	if barbershopUuid == "" {
+		ResponseError(w, http.StatusBadRequest, "Не указана парикмахерская")
+		return
+	}
+
+	schedule := models.GetScheduleItems(barbershopUuid, "", "")
+	ResponseSuccess(w, http.StatusOK, schedule)
 }

@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS haircut_types;
-DROP TABLE IF EXISTS barbershops;
-DROP TABLE IF EXISTS hairdressers;
-DROP TABLE IF EXISTS barbershops_haircut_types;
-DROP TABLE IF EXISTS barbershops_hairdressers;
+DROP TABLE IF EXISTS service_types;
+DROP TABLE IF EXISTS beautyshops;
+DROP TABLE IF EXISTS workers;
+DROP TABLE IF EXISTS workers_service_types;
+DROP TABLE IF EXISTS beautyshops_workers;
 DROP TABLE IF EXISTS schedule;
 DROP TABLE IF EXISTS clients;

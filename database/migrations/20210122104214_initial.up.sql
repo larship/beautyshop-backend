@@ -1,64 +1,67 @@
--- ./migrate -path /home/larship/projects/go/barbershop/database/migrations/ -database postgresql://barbershop:barbershop456498@localhost:5432/barbershop?sslmode=disable up
+-- ./migrate -path /home/larship/projects/go/beautyshop/database/migrations/ -database postgresql://beautyshop:beautyshop456498@localhost:5432/beautyshop?sslmode=disable up
 
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Таблица типов стрижек
-CREATE TABLE haircut_types
+-- Таблица типов услуг
+CREATE TABLE service_types
 (
     uuid UUID NOT NULL
-        CONSTRAINT haircut_types_pk
+        CONSTRAINT service_types_pk
             PRIMARY KEY,
     name VARCHAR
 );
-CREATE UNIQUE INDEX haircut_types_unique_index ON haircut_types (name);
+CREATE UNIQUE INDEX service_types_unique_index ON service_types (name);
 
--- Таблица парикмахерских
-CREATE TABLE barbershops
+-- Таблица салонов красоты
+CREATE TABLE beautyshops
 (
     uuid    UUID NOT NULL
-        CONSTRAINT barbershops_pk
+        CONSTRAINT beautyshops_pk
             PRIMARY KEY,
     name    VARCHAR,
     city    VARCHAR,
     address VARCHAR
 );
-CREATE UNIQUE INDEX barbershops_unique_index ON barbershops (name, city);
+CREATE UNIQUE INDEX beautyshops_unique_index ON beautyshops (name, city);
 
--- Таблица связей парикмахерская - тип стрижки
-CREATE TABLE barbershops_haircut_types
-(
-    barbershop_uuid   UUID NOT NULL,
-    haircut_type_uuid UUID NOT NULL
-);
-CREATE UNIQUE INDEX barbershops_haircut_types_unique_index ON barbershops_haircut_types (barbershop_uuid, haircut_type_uuid);
-
--- Таблица мастеров-парикхамеров
-CREATE TABLE hairdressers
+-- Таблица мастеров салона красоты
+CREATE TABLE workers
 (
     uuid    UUID NOT NULL
-        CONSTRAINT hairdressers_pk
+        CONSTRAINT workers_pk
             PRIMARY KEY,
-    full_name    VARCHAR
+    full_name    VARCHAR,
+    description    VARCHAR
 );
 
--- Таблица связей парикмахерская - мастер
-CREATE TABLE barbershops_hairdressers
+-- Таблица связей салон красоты - мастер
+CREATE TABLE beautyshops_workers
 (
-    barbershop_uuid   UUID NOT NULL,
-    hairdresser_uuid UUID NOT NULL
+    beautyshop_uuid   UUID NOT NULL,
+    worker_uuid UUID NOT NULL
 );
-CREATE UNIQUE INDEX barbershops_hairdressers_unique_index ON barbershops_hairdressers (barbershop_uuid, hairdresser_uuid);
+CREATE UNIQUE INDEX beautyshops_workers_unique_index ON beautyshops_workers (beautyshop_uuid, worker_uuid);
 
--- Таблица записей клиентов на стрижку
+-- Таблица связей мастер - тип услуги
+CREATE TABLE workers_service_types
+(
+    worker_uuid   UUID NOT NULL,
+    service_type_uuid UUID NOT NULL,
+    price DECIMAL(8, 2)
+);
+CREATE UNIQUE INDEX workers_service_types_unique_index ON workers_service_types (worker_uuid, service_type_uuid);
+
+-- Таблица записей клиентов на услуги
 CREATE TABLE schedule
 (
     uuid UUID NOT NULL
         CONSTRAINT schedule_pk
             PRIMARY KEY,
-    barbershop_uuid UUID NOT NULL,
+    beautyshop_uuid UUID NOT NULL,
     client_uuid UUID NOT NULL,
-    hairdresser_uuid UUID NOT NULL,
-    haircut_type_uuid UUID NOT NULL,
+    worker_uuid UUID NOT NULL,
+    service_type_uuid UUID NOT NULL,
     start_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     end_date TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
@@ -80,37 +83,37 @@ CREATE UNIQUE INDEX clients_unique_index ON clients (phone);
 
 
 
-INSERT INTO haircut_types (uuid, name)
+INSERT INTO service_types (uuid, name)
 VALUES ('2e0668af-ef32-4702-9bfb-16876957431d', 'Женская стрижка'),
        ('4cf6b154-e3e8-4135-915e-407943fff873', 'Мужская стрижка'),
        ('f98342b8-18bd-4634-ba7d-ab0075827fd8', 'Мужская модельная стрижка');
 
-INSERT INTO barbershops (uuid, name, city, address)
+INSERT INTO beautyshops (uuid, name, city, address)
 VALUES ('73b00c6d-a503-46b2-ae50-2bf609a82973', 'Сахар', 'Москва', 'Лубянский проезд, 19'),
        ('9fbec264-1655-4ccf-a368-da30b9019c0b', 'Место красоты', 'Москва', 'Лубянский проезд, 17'),
        ('69bf0453-d683-4457-a93c-b150b5c36e70', 'Оранжевое небо', 'Москва', 'Солянка, 1/2 ст. 2');
 
-INSERT INTO hairdressers (uuid, full_name)
-VALUES ('42c9f442-203b-4deb-b8e7-ef2bee010494', 'Тестовая Марина Вячеславовна'),
-       ('c380b673-ffc6-4a48-9618-9ce997a42476', 'Тожетестовая Василиса'),
-       ('900376a1-17a6-4364-bbe4-2d03b9dfe976', 'Тестовая Мария Львовна'),
-       ('e5f22585-b722-4b15-b552-2d0243625a9d', 'Какаятотестовая Анжелика'),
-       ('13ab06a3-3cfa-4b56-8fde-97905fc4c78f', 'Ещёоднатестоваяфамилия Тестовоеимя');
+INSERT INTO workers (uuid, full_name, description)
+VALUES ('42c9f442-203b-4deb-b8e7-ef2bee010494', 'Тестовая Марина Вячеславовна', 'Очень быстрый мастер, если вы хотите быстро - то это к ней'),
+       ('c380b673-ffc6-4a48-9618-9ce997a42476', 'Тожетестовая Василиса', 'Очень нежный мастер, если вы хотите нежно - то это к ней'),
+       ('900376a1-17a6-4364-bbe4-2d03b9dfe976', 'Тестовая Мария Львовна', 'Очень дешевый мастер, если вы хотите дешево - то это к ней'),
+       ('e5f22585-b722-4b15-b552-2d0243625a9d', 'Какаятотестовая Анжелика', ''),
+       ('13ab06a3-3cfa-4b56-8fde-97905fc4c78f', 'Ещёоднатестоваяфамилия Тестовоеимя', 'Просто тестовое описание');
 
-INSERT INTO barbershops_haircut_types (barbershop_uuid, haircut_type_uuid)
-VALUES ('73b00c6d-a503-46b2-ae50-2bf609a82973', '2e0668af-ef32-4702-9bfb-16876957431d'),
-       ('73b00c6d-a503-46b2-ae50-2bf609a82973', '4cf6b154-e3e8-4135-915e-407943fff873'),
-       ('73b00c6d-a503-46b2-ae50-2bf609a82973', 'f98342b8-18bd-4634-ba7d-ab0075827fd8'),
-       ('69bf0453-d683-4457-a93c-b150b5c36e70', '2e0668af-ef32-4702-9bfb-16876957431d');
+INSERT INTO workers_service_types (worker_uuid, service_type_uuid, price)
+VALUES ('42c9f442-203b-4deb-b8e7-ef2bee010494', '2e0668af-ef32-4702-9bfb-16876957431d', 1000),
+       ('42c9f442-203b-4deb-b8e7-ef2bee010494', '4cf6b154-e3e8-4135-915e-407943fff873', 1000),
+       ('42c9f442-203b-4deb-b8e7-ef2bee010494', 'f98342b8-18bd-4634-ba7d-ab0075827fd8', 1000),
+       ('c380b673-ffc6-4a48-9618-9ce997a42476', '2e0668af-ef32-4702-9bfb-16876957431d', 1000);
 
-INSERT INTO barbershops_hairdressers (barbershop_uuid, hairdresser_uuid)
+INSERT INTO beautyshops_workers (beautyshop_uuid, worker_uuid)
 VALUES ('73b00c6d-a503-46b2-ae50-2bf609a82973', '42c9f442-203b-4deb-b8e7-ef2bee010494'),
        ('73b00c6d-a503-46b2-ae50-2bf609a82973', 'c380b673-ffc6-4a48-9618-9ce997a42476'),
        ('73b00c6d-a503-46b2-ae50-2bf609a82973', '900376a1-17a6-4364-bbe4-2d03b9dfe976'),
        ('9fbec264-1655-4ccf-a368-da30b9019c0b', 'e5f22585-b722-4b15-b552-2d0243625a9d'),
        ('69bf0453-d683-4457-a93c-b150b5c36e70', '13ab06a3-3cfa-4b56-8fde-97905fc4c78f');
 
-INSERT INTO schedule (uuid, barbershop_uuid, client_uuid, hairdresser_uuid, haircut_type_uuid, start_date, end_date)
+INSERT INTO schedule (uuid, beautyshop_uuid, client_uuid, worker_uuid, service_type_uuid, start_date, end_date)
 VALUES (
         '0c43d9de-998f-4373-8529-f3622f8e371b',
         '73b00c6d-a503-46b2-ae50-2bf609a82973',

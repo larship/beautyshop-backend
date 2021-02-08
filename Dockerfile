@@ -22,4 +22,4 @@ COPY --from=builder /app/main ./
 
 EXPOSE 8080
 
-ENTRYPOINT ["./main", "-database-dsn=postgresql://barbershop:barbershop456498@database:5432/barbershop"]
+ENTRYPOINT ["./main", "-database-dsn=postgresql://beautyshop:beautyshop456498@database:5432/beautyshop"]

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/larship/barbershop/config"
+	"github.com/larship/beautyshop/config"
 	"log"
 	"net/http"
 	"os"
@@ -64,6 +64,9 @@ func gracefullyShutdown(server *http.Server, quit <-chan os.Signal, done chan<- 
 
 func ResponseSuccess(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")                                   // TODO Убрать
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token") // TODO Убрать
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")    // TODO Убрать
 	w.WriteHeader(statusCode)
 
 	if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -71,8 +74,18 @@ func ResponseSuccess(w http.ResponseWriter, statusCode int, data interface{}) {
 	}
 }
 
-func ResponseError(w http.ResponseWriter, statusCode int, errorText string) {
+func ResponseError(w http.ResponseWriter, r *http.Request, statusCode int, errorText string) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")                                   // TODO Убрать
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token") // TODO Убрать
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")    // TODO Убрать
+
+	if r.Method == http.MethodOptions {
+		// Для OPTIONS-запроса надо отдать только заголовки
+		// TODO Когда это будет на одном домене - выпилить
+		return
+	}
+
 	w.WriteHeader(statusCode)
 
 	data := map[string]string{

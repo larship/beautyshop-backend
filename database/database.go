@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"github.com/jackc/pgx/v4"
-	"github.com/larship/barbershop/config"
+	"github.com/larship/beautyshop/config"
 	"log"
 )
 

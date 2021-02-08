@@ -1,104 +1,105 @@
 package server
 
 import (
-	"github.com/larship/barbershop/models"
+	"github.com/larship/beautyshop/models"
 	"net/http"
 )
 
 func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", mainHandler)
-	s.router.HandleFunc("/haircut-types", getHaircutTypesHandler)
-	s.router.HandleFunc("/barbershops", getBarbershopsHandler)
-	s.router.HandleFunc("/hairdressers", getHairdressersHandler)
-	s.router.HandleFunc("/hairdressers/add", addHairdresserHandler)
+	s.router.HandleFunc("/service-types", getServiceTypesHandler)
+	s.router.HandleFunc("/beautyshops", getBeautyshopsHandler)
+	s.router.HandleFunc("/workers", getWorkersHandler)
+	s.router.HandleFunc("/workers/add", addWorkerHandler)
 	s.router.HandleFunc("/schedule", getScheduleHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	ResponseError(w, http.StatusBadRequest, "")
+	ResponseError(w, r, http.StatusBadRequest, "")
 }
 
-func getHaircutTypesHandler(w http.ResponseWriter, r *http.Request) {
+func getServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		ResponseError(w, http.StatusBadRequest, "")
+		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	barbershopUuid := r.URL.Query().Get("barbershop")
-	if barbershopUuid == "" {
-		ResponseError(w, http.StatusBadRequest, "Не указана парикмахерская")
+	beautyshopUuid := r.URL.Query().Get("beautyshop")
+	if beautyshopUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
 		return
 	}
 
-	haircutTypeList := models.GetHaircutTypes(barbershopUuid)
-	ResponseSuccess(w, http.StatusOK, haircutTypeList)
+	serviceTypeList := models.GetServiceTypes(beautyshopUuid)
+	ResponseSuccess(w, http.StatusOK, serviceTypeList)
 }
 
-func getBarbershopsHandler(w http.ResponseWriter, r *http.Request) {
+func getBeautyshopsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		ResponseError(w, http.StatusBadRequest, "")
+		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
 	city := r.URL.Query().Get("city")
 	if city == "" {
-		ResponseError(w, http.StatusBadRequest, "Не указан город")
+		ResponseError(w, r, http.StatusBadRequest, "Не указан город")
 		return
 	}
 
-	barbershopList := models.GetBarbershops(city)
-	ResponseSuccess(w, http.StatusOK, barbershopList)
+	beautyshopList := models.GetBeautyshops(city)
+	ResponseSuccess(w, http.StatusOK, beautyshopList)
 }
 
-func getHairdressersHandler(w http.ResponseWriter, r *http.Request) {
+func getWorkersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		ResponseError(w, http.StatusBadRequest, "")
+		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	barbershopUuid := r.URL.Query().Get("barbershop")
-	if barbershopUuid == "" {
-		ResponseError(w, http.StatusBadRequest, "Не указана парикмахерская")
+	beautyshopUuid := r.URL.Query().Get("beautyshop")
+	if beautyshopUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
 		return
 	}
 
-	hairdressersList := models.GetHairdressers(barbershopUuid)
-	ResponseSuccess(w, http.StatusOK, hairdressersList)
+	workersList := models.GetWorkers(beautyshopUuid)
+	ResponseSuccess(w, http.StatusOK, workersList)
 }
 
-func addHairdresserHandler(w http.ResponseWriter, r *http.Request) {
+func addWorkerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		ResponseError(w, http.StatusBadRequest, "")
+		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	barbershopUuid := r.FormValue("barbershopUuid")
+	beautyshopUuid := r.FormValue("beautyshopUuid")
 	fullName := r.FormValue("fullName")
+	description := r.FormValue("description")
 
-	if barbershopUuid == "" || fullName == "" {
-		ResponseError(w, http.StatusBadRequest, "Не указан UUID парикмахерской или Fullname парикмахера")
+	if beautyshopUuid == "" || fullName == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан UUID салона красоты или Fullname мастера")
 		return
 	}
 
-	if models.AddHairdresser(barbershopUuid, fullName) {
+	if models.AddWorker(beautyshopUuid, fullName, description) {
 		ResponseSuccess(w, http.StatusOK, "")
 	} else {
-		ResponseError(w, http.StatusBadRequest, "Ошибка при добавлении")
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении")
 	}
 }
 
 func getScheduleHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		ResponseError(w, http.StatusBadRequest, "")
+		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	barbershopUuid := r.FormValue("barbershop")
-	if barbershopUuid == "" {
-		ResponseError(w, http.StatusBadRequest, "Не указана парикмахерская")
+	beautyshopUuid := r.FormValue("beautyshop")
+	if beautyshopUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
 		return
 	}
 
-	schedule := models.GetScheduleItems(barbershopUuid, "", "")
+	schedule := models.GetScheduleItems(beautyshopUuid, "", "")
 	ResponseSuccess(w, http.StatusOK, schedule)
 }

@@ -18,9 +18,9 @@ services:
     container_name: database_container
     image: postgres:latest
     environment:
-      POSTGRES_USER: barbershop
-      POSTGRES_PASSWORD: barbershop456498
-      POSTGRES_DB: barbershop
+      POSTGRES_USER: beautyshop
+      POSTGRES_PASSWORD: beautyshop456498
+      POSTGRES_DB: beautyshop
     ports:
       - '5432:5432'
     volumes:

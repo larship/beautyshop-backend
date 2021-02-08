@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/larship/barbershop/config"
-	"github.com/larship/barbershop/database"
-	"github.com/larship/barbershop/server"
+	"github.com/larship/beautyshop/config"
+	"github.com/larship/beautyshop/database"
+	"github.com/larship/beautyshop/server"
 	"net/http"
 )
 

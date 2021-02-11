@@ -8,9 +8,10 @@ import (
 )
 
 type Worker struct {
-	Uuid        string `json:"id"`
-	FullName    string `json:"full-name"`
-	Description string `json:"description"`
+	Uuid        string        `json:"uuid"`
+	FullName    string        `json:"full-name"`
+	Description string        `json:"description"`
+	Services    []ServiceType `json:"services"`
 }
 
 func GetWorkers(beautyshopUuid string) []Worker {
@@ -27,12 +28,49 @@ func GetWorkers(beautyshopUuid string) []Worker {
 		return nil
 	}
 
-	var workerList []Worker
+	// var workerList []Worker
+	workersMap := map[string]*Worker{}
 
 	for rows.Next() {
 		var item Worker
 		err = rows.Scan(&item.Uuid, &item.FullName, &item.Description)
-		workerList = append(workerList, item)
+		// workerList = append(workerList, item)
+		workersMap[item.Uuid] = &item
+	}
+
+	workerUuids := []string{}
+	for _, worker := range workersMap {
+		workerUuids = append(workerUuids, worker.Uuid)
+	}
+
+	sql = `
+		SELECT wst.worker_uuid, st.uuid, st.name, wst.price
+		FROM workers_service_types wst
+		INNER JOIN service_types st ON st.uuid = wst.service_type_uuid
+		WHERE wst.worker_uuid = ANY($1)
+	`
+	rows, err = database.DB.GetConnection().Query(context.Background(), sql, workerUuids)
+
+	if err != nil {
+		fmt.Printf("Ошибка получения услуг мастеров: %v", err)
+		return nil
+	}
+
+	for rows.Next() {
+		var item ServiceType
+		var workerUuid string
+		err = rows.Scan(&workerUuid, &item.Uuid, &item.Name, &item.Price)
+
+		for _, worker := range workersMap {
+			if workerUuid == worker.Uuid {
+				worker.Services = append(worker.Services, item)
+			}
+		}
+	}
+
+	var workerList []Worker
+	for _, val := range workersMap {
+		workerList = append(workerList, *val)
 	}
 
 	return workerList

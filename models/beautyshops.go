@@ -52,51 +52,8 @@ func GetBeautyshops(city string) []Beautyshop {
 		beautyshopsMap[beautyshopItem.Uuid] = &beautyshopItem
 	}
 
-	// Получим типы услуг, которые делают в салоне красоты (выборка по мастерам)
-	// sql = `
-	// 	SELECT bst.beautyshop_uuid, st.*
-	// 	FROM beautyshops_service_types bst
-	// 	INNER JOIN service_types st ON st.uuid = bst.service_type_uuid
-	// `
-	// rows, err = database.DB.GetConnection().Query(context.Background(), sql)
-	// if err != nil {
-	// 	fmt.Printf("Ошибка получения типов стрижек для парикмахерских: %v", err)
-	// 	return nil
-	// }
-	//
-	// for rows.Next() {
-	// 	var beautyshopUuid string
-	// 	var serviceTypeItem ServiceType
-	// 	err = rows.Scan(&beautyshopUuid, &serviceTypeItem.Uuid, &serviceTypeItem.Name)
-	//
-	// 	if val, ok := beautyshopsMap[beautyshopUuid]; ok {
-	// 		val.ServiceTypes = append(val.ServiceTypes, serviceTypeItem)
-	// 	}
-	// }
-
-	// Получим мастеров салона красоты
-	sql = `
-		SELECT bw.beautyshop_uuid, w.*
-		FROM beautyshops_workers bw
-		INNER JOIN workers w ON w.uuid = bw.worker_uuid
-	`
-
-	// TODO Тут бы в самом запросе отфильтроваться по списку UUID, чтобы не тащить всех мастеров
-
-	rows, err = database.DB.GetConnection().Query(context.Background(), sql)
-	if err != nil {
-		fmt.Printf("Ошибка получения мастеров салонов красоты: %v", err)
-		return nil
-	}
-
-	for rows.Next() {
-		var beautyshopUuid string
-		var workerItem Worker
-		err = rows.Scan(&beautyshopUuid, &workerItem.Uuid, &workerItem.FullName, &workerItem.Description)
-
-		if val, ok := beautyshopsMap[beautyshopUuid]; ok {
-			val.Workers = append(val.Workers, workerItem)
-		}
+	for _, val := range beautyshopsMap {
+		beautyshopsMap[val.Uuid].Workers = GetWorkers(val.Uuid)
 	}
 
 	var beautyshopsList []Beautyshop

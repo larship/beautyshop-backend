@@ -1,4 +1,4 @@
--- ./migrate -path /home/larship/projects/go/beautyshop/database/migrations/ -database postgresql://beautyshop:beautyshop456498@localhost:5432/beautyshop?sslmode=disable up
+-- ./migrate -path /home/larship/projects/beautyshop/backend/database/migrations/ -database postgresql://beautyshop:beautyshop456498@localhost:5432/beautyshop?sslmode=disable up
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -72,8 +72,10 @@ CREATE TABLE clients
     uuid UUID NOT NULL,
     full_name VARCHAR,
     phone VARCHAR,
-    password_salt VARCHAR,
-    password_hash VARCHAR
+    session_id VARCHAR,
+    session_private_id VARCHAR,
+    salt VARCHAR
+
 );
 CREATE UNIQUE INDEX clients_unique_index ON clients (phone);
 
@@ -124,11 +126,12 @@ VALUES (
         '2021-02-03 10:30:00'
 );
 
-INSERT INTO clients (uuid, full_name, phone, password_salt, password_hash)
+INSERT INTO clients (uuid, full_name, phone, session_id, session_private_id, salt)
 VALUES (
-        'd57598f6-aec6-42c3-a811-9df463856fdb',
-        'Тестов Клиент Тестович',
+        '66c937fe-f857-45a6-8ed2-d6fcb88216ff',
+        'Тестовый чувак',
         '79991112233',
-        digest('testsalt', 'sha256'),
-        digest(digest ('testsalt', 'sha256') || 'testpassword', 'sha256')
+        '084d412c63f873244dd1b73edf11d1b953996d8493fd428de1714928b74914ea',
+        'df3ab2de8ed5d68e4866a9c346e9a7efbd1b7b812ef3124a64333f72bf9f34f5',
+        '4dde0a47095a425e755d55ac2d8ec41fb8b410a1da796c13d084b4ef66d3e875'
 );

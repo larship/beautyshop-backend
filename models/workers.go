@@ -9,7 +9,7 @@ import (
 
 type Worker struct {
 	Uuid        string        `json:"uuid"`
-	FullName    string        `json:"full-name"`
+	FullName    string        `json:"fullName"`
 	Description string        `json:"description"`
 	Services    []ServiceType `json:"services"`
 }
@@ -98,7 +98,7 @@ func AddWorker(beautyshopUuid string, workerFullName string, workerDesc string) 
 	_, err = database.DB.GetConnection().Exec(context.Background(), sql, workerUuid, workerFullName, workerDesc)
 
 	if err != nil {
-		fmt.Printf("Ошибка добавления мастеа: %v", err)
+		fmt.Printf("Ошибка добавления мастера: %v", err)
 		return false
 	}
 

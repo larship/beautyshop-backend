@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/larship/beautyshop/auth"
 	"github.com/larship/beautyshop/models"
 	"net/http"
 )
@@ -12,6 +13,8 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/workers", getWorkersHandler)
 	s.router.HandleFunc("/workers/add", addWorkerHandler)
 	s.router.HandleFunc("/schedule", getScheduleHandler)
+	s.router.HandleFunc("/client/auth", authClientHandler)
+	s.router.HandleFunc("/client/new", newClientHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,4 +105,51 @@ func getScheduleHandler(w http.ResponseWriter, r *http.Request) {
 
 	schedule := models.GetScheduleItems(beautyshopUuid, "", "")
 	ResponseSuccess(w, http.StatusOK, schedule)
+}
+
+func authClientHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	clientUuid := r.FormValue("clientUuid")
+	sessionId := r.FormValue("sessionId")
+	salt := r.FormValue("salt")
+
+	if clientUuid == "" || sessionId == "" || salt == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных для аутентификации")
+		return
+	}
+
+	client := auth.CheckAuth(clientUuid, sessionId, salt)
+
+	if client != nil {
+		ResponseSuccess(w, http.StatusOK, client)
+	} else {
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка при авторизации")
+	}
+}
+
+func newClientHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	fullName := r.FormValue("fullName")
+	phone := r.FormValue("phone")
+
+	if fullName == "" || phone == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указано имя клиента или его телефон")
+		return
+	}
+
+	user := auth.CreateUser(fullName, phone)
+
+	if user != nil {
+		ResponseSuccess(w, http.StatusOK, user)
+	} else {
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении клиента")
+	}
 }

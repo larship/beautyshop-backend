@@ -44,7 +44,7 @@ func GetWorkers(beautyshopUuid string) []Worker {
 	}
 
 	sql = `
-		SELECT wst.worker_uuid, st.uuid, st.name, wst.price
+		SELECT wst.worker_uuid, st.uuid, st.name, wst.price, wst.duration
 		FROM workers_service_types wst
 		INNER JOIN service_types st ON st.uuid = wst.service_type_uuid
 		WHERE wst.worker_uuid = ANY($1)
@@ -59,7 +59,7 @@ func GetWorkers(beautyshopUuid string) []Worker {
 	for rows.Next() {
 		var item ServiceType
 		var workerUuid string
-		err = rows.Scan(&workerUuid, &item.Uuid, &item.Name, &item.Price)
+		err = rows.Scan(&workerUuid, &item.Uuid, &item.Name, &item.Price, &item.Duration)
 
 		for _, worker := range workersMap {
 			if workerUuid == worker.Uuid {

@@ -7,14 +7,15 @@ import (
 )
 
 type ServiceType struct {
-	Uuid  string  `json:"uuid"`
-	Name  string  `json:"name"`
-	Price float32 `json:"price"`
+	Uuid     string  `json:"uuid"`
+	Name     string  `json:"name"`
+	Price    float32 `json:"price"`
+	Duration uint16  `json:"duration"`
 }
 
 func GetServiceTypes(beautyshopUuid string) []ServiceType {
 	sql := `
-		SELECT st.*, wst.price
+		SELECT st.*, wst.price, wst.duration
 		FROM service_types st
 		INNER JOIN workers_service_types wst ON wst.service_type_uuid = st.uuid
 		INNER JOIN beautyshops_workers bw ON bw.worker_uuid = wst.worker_uuid
@@ -31,7 +32,7 @@ func GetServiceTypes(beautyshopUuid string) []ServiceType {
 
 	for rows.Next() {
 		var item ServiceType
-		err = rows.Scan(&item.Uuid, &item.Name, &item.Price)
+		err = rows.Scan(&item.Uuid, &item.Name, &item.Price, &item.Duration)
 		serviceTypesList = append(serviceTypesList, item)
 	}
 

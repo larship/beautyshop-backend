@@ -1,4 +1,4 @@
--- ./migrate -path /home/larship/projects/beautyshop/backend/database/migrations/ -database postgresql://beautyshop:beautyshop456498@localhost:5432/beautyshop?sslmode=disable up
+-- ./migrate -path ./database/migrations/ -database postgresql://beautyshop:beautyshop456498@localhost:5432/beautyshop?sslmode=disable up
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";

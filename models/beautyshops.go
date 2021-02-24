@@ -29,6 +29,8 @@ func GetBeautyshopByUuid(beautyshopUuid string) *Beautyshop {
 		return nil
 	}
 
+	beautyshop.Workers = GetWorkers(beautyshop.Uuid)
+
 	return &beautyshop
 }
 

@@ -10,6 +10,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", mainHandler)
 	s.router.HandleFunc("/service-types", getServiceTypesHandler)
 	s.router.HandleFunc("/beautyshops", getBeautyshopsHandler)
+	s.router.HandleFunc("/beautyshop", getBeautyshopHandler)
 	s.router.HandleFunc("/workers", getWorkersHandler)
 	s.router.HandleFunc("/workers/add", addWorkerHandler)
 	s.router.HandleFunc("/schedule", getScheduleHandler)
@@ -27,7 +28,7 @@ func getServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	beautyshopUuid := r.URL.Query().Get("beautyshop")
+	beautyshopUuid := r.URL.Query().Get("beautyshopUuid")
 	if beautyshopUuid == "" {
 		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
 		return
@@ -53,13 +54,29 @@ func getBeautyshopsHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, beautyshopList)
 }
 
+func getBeautyshopHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	beautyshopUuid := r.URL.Query().Get("uuid")
+	if beautyshopUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
+		return
+	}
+
+	beautyshop := models.GetBeautyshopByUuid(beautyshopUuid)
+	ResponseSuccess(w, http.StatusOK, beautyshop)
+}
+
 func getWorkersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	beautyshopUuid := r.URL.Query().Get("beautyshop")
+	beautyshopUuid := r.URL.Query().Get("beautyshopUuid")
 	if beautyshopUuid == "" {
 		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
 		return

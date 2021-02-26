@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"github.com/larship/beautyshop/auth"
 	"github.com/larship/beautyshop/models"
 	"net/http"
@@ -13,7 +14,8 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/beautyshop", getBeautyshopHandler)
 	s.router.HandleFunc("/workers", getWorkersHandler)
 	s.router.HandleFunc("/workers/add", addWorkerHandler)
-	s.router.HandleFunc("/schedule", getScheduleHandler)
+	s.router.HandleFunc("/check-in-list", getClientCheckInList)
+	s.router.HandleFunc("/create-check-in", createCheckInHandler)
 	s.router.HandleFunc("/client/auth", authClientHandler)
 	s.router.HandleFunc("/client/new", newClientHandler)
 }
@@ -108,20 +110,58 @@ func addWorkerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getScheduleHandler(w http.ResponseWriter, r *http.Request) {
+func getClientCheckInList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	beautyshopUuid := r.FormValue("beautyshop")
-	if beautyshopUuid == "" {
-		ResponseError(w, r, http.StatusBadRequest, "Не указан салон красоты")
+	clientUuid := r.FormValue("clientUuid")
+	if clientUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан UUID клиента")
 		return
 	}
 
-	schedule := models.GetScheduleItems(beautyshopUuid, "", "")
-	ResponseSuccess(w, http.StatusOK, schedule)
+	checkInList := models.GetCheckInList(clientUuid, "", "")
+	ResponseSuccess(w, http.StatusOK, checkInList)
+}
+
+type createCheckInParams struct {
+	BeautyshopUuid string `json:"beautyshopUuid"`
+	ClientUuid string `json:"clientUuid"`
+	WorkerUuid string `json:"workerUuid"`
+	ServiceTypeUuid string `json:"serviceTypeUuid"`
+	StartDate int64 `json:"startDate"`
+}
+
+func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	var params createCheckInParams
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(&params); err != nil {
+		ResponseError(w, r, http.StatusBadRequest, "Произошла ошибка при парсинге запроса")
+		return
+	}
+
+	if params.BeautyshopUuid == "" || params.ClientUuid == "" || params.WorkerUuid == "" ||
+		params.ServiceTypeUuid == "" || params.StartDate == 0 {
+		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных")
+		return
+	}
+
+	// TODO Тут возвращать запись, чтобы информацию о ней сразу можно было бы отобразить на клиента
+	success := models.CreateCheckIn(params.BeautyshopUuid, params.ClientUuid, params.WorkerUuid, params.ServiceTypeUuid, params.StartDate)
+
+	if success {
+		ResponseSuccess(w, http.StatusOK, "")
+	} else {
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении записи")
+	}
 }
 
 func authClientHandler(w http.ResponseWriter, r *http.Request) {

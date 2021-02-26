@@ -54,10 +54,10 @@ CREATE TABLE workers_service_types
 CREATE UNIQUE INDEX workers_service_types_unique_index ON workers_service_types (worker_uuid, service_type_uuid);
 
 -- Таблица записей клиентов на услуги
-CREATE TABLE schedule
+CREATE TABLE checkin_list
 (
     uuid UUID NOT NULL
-        CONSTRAINT schedule_pk
+        CONSTRAINT checkin_list_pk
             PRIMARY KEY,
     beautyshop_uuid UUID NOT NULL,
     client_uuid UUID NOT NULL,
@@ -116,11 +116,11 @@ VALUES ('73b00c6d-a503-46b2-ae50-2bf609a82973', '42c9f442-203b-4deb-b8e7-ef2bee0
        ('9fbec264-1655-4ccf-a368-da30b9019c0b', 'e5f22585-b722-4b15-b552-2d0243625a9d'),
        ('69bf0453-d683-4457-a93c-b150b5c36e70', '13ab06a3-3cfa-4b56-8fde-97905fc4c78f');
 
-INSERT INTO schedule (uuid, beautyshop_uuid, client_uuid, worker_uuid, service_type_uuid, start_date, end_date)
+INSERT INTO checkin_list (uuid, beautyshop_uuid, client_uuid, worker_uuid, service_type_uuid, start_date, end_date)
 VALUES (
         '0c43d9de-998f-4373-8529-f3622f8e371b',
         '73b00c6d-a503-46b2-ae50-2bf609a82973',
-        'd57598f6-aec6-42c3-a811-9df463856fdb',
+        '66c937fe-f857-45a6-8ed2-d6fcb88216ff',
         '42c9f442-203b-4deb-b8e7-ef2bee010494',
         '2e0668af-ef32-4702-9bfb-16876957431d',
         '2021-02-03 10:00:00',

@@ -3,15 +3,17 @@ package models
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgtype"
 	"github.com/larship/beautyshop/database"
 )
 
 type Beautyshop struct {
-	Uuid    string   `json:"uuid"`
-	Name    string   `json:"name"`
-	City    string   `json:"city"`
-	Address string   `json:"address"`
-	Workers []Worker `json:"workers"`
+	Uuid        string       `json:"uuid"`
+	Name        string       `json:"name"`
+	City        string       `json:"city"`
+	Address     string       `json:"address"`
+	Coordinates pgtype.Point `json:"coordinates"`
+	Workers     []Worker     `json:"workers"`
 }
 
 func GetBeautyshopByUuid(beautyshopUuid string) *Beautyshop {
@@ -23,7 +25,8 @@ func GetBeautyshopByUuid(beautyshopUuid string) *Beautyshop {
 		WHERE uuid = $1
 	`
 
-	err := database.DB.GetConnection().QueryRow(context.Background(), sql, beautyshopUuid).Scan(&beautyshop.Uuid, &beautyshop.Name, &beautyshop.City, &beautyshop.Address)
+	err := database.DB.GetConnection().QueryRow(context.Background(), sql, beautyshopUuid).Scan(&beautyshop.Uuid,
+		&beautyshop.Name, &beautyshop.City, &beautyshop.Address, &beautyshop.Coordinates)
 	if err != nil {
 		fmt.Printf("Ошибка получения салона красоты: %v", err)
 		return nil
@@ -50,7 +53,8 @@ func GetBeautyshops(city string) []Beautyshop {
 	beautyshopsMap := map[string]*Beautyshop{}
 	for rows.Next() {
 		var beautyshopItem Beautyshop
-		err = rows.Scan(&beautyshopItem.Uuid, &beautyshopItem.Name, &beautyshopItem.City, &beautyshopItem.Address)
+		err = rows.Scan(&beautyshopItem.Uuid, &beautyshopItem.Name, &beautyshopItem.City,
+			&beautyshopItem.Address, &beautyshopItem.Coordinates)
 		beautyshopsMap[beautyshopItem.Uuid] = &beautyshopItem
 	}
 

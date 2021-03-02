@@ -127,11 +127,11 @@ func getClientCheckInList(w http.ResponseWriter, r *http.Request) {
 }
 
 type createCheckInParams struct {
-	BeautyshopUuid string `json:"beautyshopUuid"`
-	ClientUuid string `json:"clientUuid"`
-	WorkerUuid string `json:"workerUuid"`
+	BeautyshopUuid  string `json:"beautyshopUuid"`
+	ClientUuid      string `json:"clientUuid"`
+	WorkerUuid      string `json:"workerUuid"`
 	ServiceTypeUuid string `json:"serviceTypeUuid"`
-	StartDate int64 `json:"startDate"`
+	StartDate       int64  `json:"startDate"`
 }
 
 func createCheckInHandler(w http.ResponseWriter, r *http.Request) {

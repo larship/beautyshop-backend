@@ -65,7 +65,8 @@ CREATE TABLE checkin_list
     worker_uuid       UUID                        NOT NULL,
     service_type_uuid UUID                        NOT NULL,
     start_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    end_date          TIMESTAMP WITHOUT TIME ZONE NOT NULL
+    end_date          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    created_date      TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 -- Таблица записей клиентов на стрижку (@TODO перенести в отдельный сервис)
@@ -118,14 +119,15 @@ VALUES ('73b00c6d-a503-46b2-ae50-2bf609a82973', '42c9f442-203b-4deb-b8e7-ef2bee0
        ('9fbec264-1655-4ccf-a368-da30b9019c0b', 'e5f22585-b722-4b15-b552-2d0243625a9d'),
        ('69bf0453-d683-4457-a93c-b150b5c36e70', '13ab06a3-3cfa-4b56-8fde-97905fc4c78f');
 
-INSERT INTO checkin_list (uuid, beautyshop_uuid, client_uuid, worker_uuid, service_type_uuid, start_date, end_date)
+INSERT INTO checkin_list (uuid, beautyshop_uuid, client_uuid, worker_uuid, service_type_uuid, start_date, end_date, created_date)
 VALUES ('0c43d9de-998f-4373-8529-f3622f8e371b',
         '73b00c6d-a503-46b2-ae50-2bf609a82973',
         '66c937fe-f857-45a6-8ed2-d6fcb88216ff',
         '42c9f442-203b-4deb-b8e7-ef2bee010494',
         '2e0668af-ef32-4702-9bfb-16876957431d',
         '2021-02-03 10:00:00',
-        '2021-02-03 10:30:00');
+        '2021-02-03 10:30:00',
+        NOW());
 
 INSERT INTO clients (uuid, full_name, phone, session_id, session_private_id, salt)
 VALUES ('66c937fe-f857-45a6-8ed2-d6fcb88216ff',

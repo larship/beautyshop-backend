@@ -4,18 +4,20 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/larship/beautyshop/database"
 	"time"
 )
 
 type CheckInItem struct {
-	Uuid        string
-	Beautyshop  Beautyshop
-	ClientUuid  string // @TODO Подгружать полностью клиента
-	Worker      Worker
-	ServiceType ServiceType
-	StartDate   time.Time
-	EndDate     time.Time
+	Uuid        string      `json:"uuid"`
+	Beautyshop  Beautyshop  `json:"beautyshop"`
+	Client      Client      `json:"client"`
+	Worker      Worker      `json:"worker"`
+	ServiceType ServiceType `json:"serviceType"`
+	StartDate   time.Time   `json:"startDate"`
+	EndDate     time.Time   `json:"endDate"`
+	CreatedDate time.Time   `json:"createdDate"`
 }
 
 const tableName = "checkin_list"
@@ -62,23 +64,47 @@ func GetCheckInList(clientUuid string, from string, to string) []CheckInItem {
 }
 
 // Создать запись в салон красоты.
-func CreateCheckIn(beautyshopUuid string, clientUuid string, workerUuid string, serviceTypeUuid string, startTime int64) bool {
+func CreateCheckIn(beautyshopUuid string, clientUuid string, workerUuid string, serviceTypeUuid string, startTime int64) *CheckInItem {
 	sql := fmt.Sprintf(`
 		INSERT INTO %s
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`, tableName)
 
 	checkInUuid := uuid.New().String()
-	startTimeStr := time.Unix(startTime, 0).Format(time.UnixDate)
-	endDateStr := time.Unix(startTime, 0).Format(time.UnixDate) // TODO Рассчитывать исходя из длительности услуги
+	checkInStartTime := time.Unix(startTime, 0)
+	checkInEndTime := time.Unix(startTime, 0) // TODO Рассчитывать исходя из длительности услуги
+	createdTime := time.Now()
 
 	_, err := database.DB.GetConnection().Exec(context.Background(), sql, checkInUuid, beautyshopUuid, clientUuid,
-		workerUuid, serviceTypeUuid, startTimeStr, endDateStr)
+		workerUuid, serviceTypeUuid, checkInStartTime.Format(time.UnixDate), checkInEndTime.Format(time.UnixDate),
+		createdTime.Format(time.UnixDate))
 
 	if err != nil {
-		fmt.Printf("Ошибка добавления мастера: %v", err)
-		return false
+		fmt.Printf("Ошибка при добавлении записи: %v", err)
+		return nil
 	}
 
-	return true
+	var checkInItem = CheckInItem{
+		Uuid: checkInUuid,
+		Beautyshop: Beautyshop{
+			Uuid: beautyshopUuid,
+			Coordinates: pgtype.Point{
+				Status: pgtype.Null,
+			},
+		},
+		Client: Client{
+			Uuid: clientUuid,
+		},
+		Worker: Worker{
+			Uuid: workerUuid,
+		},
+		ServiceType: ServiceType{
+			Uuid: serviceTypeUuid,
+		},
+		StartDate: checkInStartTime,
+		EndDate:   checkInEndTime,
+		CreatedDate: createdTime,
+	}
+
+	return &checkInItem
 }

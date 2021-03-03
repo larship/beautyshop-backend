@@ -154,11 +154,10 @@ func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO Тут возвращать запись, чтобы информацию о ней сразу можно было бы отобразить на клиента
-	success := models.CreateCheckIn(params.BeautyshopUuid, params.ClientUuid, params.WorkerUuid, params.ServiceTypeUuid, params.StartDate)
+	checkInItem := models.CreateCheckIn(params.BeautyshopUuid, params.ClientUuid, params.WorkerUuid, params.ServiceTypeUuid, params.StartDate)
 
-	if success {
-		ResponseSuccess(w, http.StatusOK, "")
+	if checkInItem != nil {
+		ResponseSuccess(w, http.StatusOK, checkInItem)
 	} else {
 		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении записи")
 	}

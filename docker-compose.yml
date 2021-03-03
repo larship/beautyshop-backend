@@ -18,6 +18,7 @@ services:
     container_name: database_container
     image: postgres:latest
     environment:
+      TZ: 'Asia/Vladivostok'
       POSTGRES_USER: beautyshop
       POSTGRES_PASSWORD: beautyshop456498
       POSTGRES_DB: beautyshop

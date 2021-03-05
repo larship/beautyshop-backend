@@ -9,9 +9,9 @@ import (
 
 func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", mainHandler)
-	s.router.HandleFunc("/service-types", getServiceTypesHandler)
 	s.router.HandleFunc("/beautyshops", getBeautyshopsHandler)
 	s.router.HandleFunc("/beautyshop", getBeautyshopHandler)
+	s.router.HandleFunc("/beautyshop/service-types", getBeautyshopServiceTypesHandler)
 	s.router.HandleFunc("/workers", getWorkersHandler)
 	s.router.HandleFunc("/workers/add", addWorkerHandler)
 	s.router.HandleFunc("/check-in-list", getClientCheckInList)
@@ -24,7 +24,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseError(w, r, http.StatusBadRequest, "")
 }
 
-func getServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
+func getBeautyshopServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -36,7 +36,7 @@ func getServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serviceTypeList := models.GetServiceTypes(beautyshopUuid)
+	serviceTypeList := models.GetBeautyshopServiceTypes(beautyshopUuid)
 	ResponseSuccess(w, http.StatusOK, serviceTypeList)
 }
 

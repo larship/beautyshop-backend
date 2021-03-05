@@ -13,7 +13,7 @@ type ServiceType struct {
 	Duration uint16  `json:"duration"`
 }
 
-func GetServiceTypes(beautyshopUuid string) []ServiceType {
+func GetBeautyshopServiceTypes(beautyshopUuid string) []ServiceType {
 	sql := `
 		SELECT st.*, wst.price, wst.duration
 		FROM service_types st
@@ -24,7 +24,7 @@ func GetServiceTypes(beautyshopUuid string) []ServiceType {
 
 	rows, err := database.DB.GetConnection().Query(context.Background(), sql, beautyshopUuid)
 	if err != nil {
-		fmt.Printf("Ошибка получения списка услуг: %v", err)
+		fmt.Printf("Ошибка получения списка услуг для салона: %v", err)
 		return nil
 	}
 
@@ -37,4 +37,27 @@ func GetServiceTypes(beautyshopUuid string) []ServiceType {
 	}
 
 	return serviceTypesList
+}
+
+func GetWorkerServiceType(workerUuid string, serviceTypeUuid string) *ServiceType {
+	sql := `
+		SELECT st.*, wst.price, wst.duration
+		FROM service_types st
+		INNER JOIN workers_service_types wst ON wst.service_type_uuid = st.uuid
+		WHERE
+			wst.worker_uuid = $1 AND
+			wst.service_type_uuid = $2
+	`
+
+	var serviceType ServiceType
+
+	err := database.DB.GetConnection().QueryRow(context.Background(), sql, workerUuid, serviceTypeUuid).Scan(&serviceType.Uuid,
+		&serviceType.Name, &serviceType.Price, &serviceType.Duration)
+
+	if err != nil {
+		fmt.Printf("Ошибка получения услуги мастера: %v", err)
+		return nil
+	}
+
+	return &serviceType
 }

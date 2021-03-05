@@ -14,6 +14,26 @@ type Worker struct {
 	Services    []ServiceType `json:"services"`
 }
 
+func GetWorkerByUuid(workerUuid string) *Worker {
+	sql := `
+		SELECT w.*
+		FROM workers w
+		WHERE w.uuid = $1
+	`
+
+	var worker Worker
+
+	err := database.DB.GetConnection().QueryRow(context.Background(), sql, workerUuid).Scan(&worker.Uuid,
+		&worker.FullName, &worker.Description)
+
+	if err != nil {
+		fmt.Printf("Ошибка получения мастера: %v", err)
+		return nil
+	}
+
+	return &worker
+}
+
 func GetWorkers(beautyshopUuid string) []Worker {
 	sql := `
 		SELECT h.*

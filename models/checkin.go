@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgtype"
 	"github.com/larship/beautyshop/database"
 	"time"
 )
@@ -84,25 +83,22 @@ func CreateCheckIn(beautyshopUuid string, clientUuid string, workerUuid string, 
 		return nil
 	}
 
+	beautyshop := GetBeautyshopByUuid(beautyshopUuid)
+	beautyshop.Workers = nil
+
+	worker := GetWorkerByUuid(workerUuid)
+	serviceType := GetWorkerServiceType(workerUuid, serviceTypeUuid)
+
 	var checkInItem = CheckInItem{
-		Uuid: checkInUuid,
-		Beautyshop: Beautyshop{
-			Uuid: beautyshopUuid,
-			Coordinates: pgtype.Point{
-				Status: pgtype.Null,
-			},
-		},
+		Uuid:       checkInUuid,
+		Beautyshop: *beautyshop,
 		Client: Client{
 			Uuid: clientUuid,
 		},
-		Worker: Worker{
-			Uuid: workerUuid,
-		},
-		ServiceType: ServiceType{
-			Uuid: serviceTypeUuid,
-		},
-		StartDate: checkInStartTime,
-		EndDate:   checkInEndTime,
+		Worker:      *worker,
+		ServiceType: *serviceType,
+		StartDate:   checkInStartTime,
+		EndDate:     checkInEndTime,
 		CreatedDate: createdTime,
 	}
 

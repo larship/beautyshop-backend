@@ -34,7 +34,7 @@ func GetWorkerByUuid(workerUuid string) *Worker {
 	return &worker
 }
 
-func GetWorkers(beautyshopUuid string) []Worker {
+func GetWorkers(beautyshopUuid string) []*Worker {
 	sql := `
 		SELECT h.*
 		FROM workers h
@@ -48,18 +48,16 @@ func GetWorkers(beautyshopUuid string) []Worker {
 		return nil
 	}
 
-	// var workerList []Worker
-	workersMap := map[string]*Worker{}
+	var workerList []*Worker
 
 	for rows.Next() {
 		var item Worker
 		err = rows.Scan(&item.Uuid, &item.FullName, &item.Description)
-		// workerList = append(workerList, item)
-		workersMap[item.Uuid] = &item
+		workerList = append(workerList, &item)
 	}
 
 	workerUuids := []string{}
-	for _, worker := range workersMap {
+	for _, worker := range workerList {
 		workerUuids = append(workerUuids, worker.Uuid)
 	}
 
@@ -81,16 +79,11 @@ func GetWorkers(beautyshopUuid string) []Worker {
 		var workerUuid string
 		err = rows.Scan(&workerUuid, &item.Uuid, &item.Name, &item.Price, &item.Duration)
 
-		for _, worker := range workersMap {
+		for _, worker := range workerList {
 			if workerUuid == worker.Uuid {
 				worker.Services = append(worker.Services, item)
 			}
 		}
-	}
-
-	var workerList []Worker
-	for _, val := range workersMap {
-		workerList = append(workerList, *val)
 	}
 
 	return workerList

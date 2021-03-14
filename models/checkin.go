@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/larship/beautyshop/database"
 	"time"
 )
@@ -17,49 +18,65 @@ type CheckInItem struct {
 	StartDate   time.Time   `json:"startDate"`
 	EndDate     time.Time   `json:"endDate"`
 	CreatedDate time.Time   `json:"createdDate"`
+	Deleted     bool        `json:"deleted"`
 }
 
 const tableName = "checkin_list"
 
-func GetCheckInList(clientUuid string, from string, to string) []CheckInItem {
+func GetBeautyshopCheckInList(beautyshopUuid string, startDate string, endDate string) []CheckInItem {
+	// TODO Получать прайс из элемента записи
+
 	sql := fmt.Sprintf(`
 		SELECT
-			cl.uuid, cl.start_date, cl.end_date,
-			b.name, b.city, b.address,
-			w.full_name, w.description
-			st.name
+			cl.uuid, cl.start_date, cl.end_date, cl.deleted, cl.created_date,
+			b.uuid, b.name, b.city, b.address,
+			w.uuid, w.full_name,
+			st.uuid, st.name
 		FROM %s cl
 		INNER JOIN beautyshops b ON b.uuid = cl.beautyshop_uuid
 		INNER JOIN workers w ON w.uuid = cl.worker_uuid
 		INNER JOIN service_types st ON st.uuid = cl.service_type_uuid
-		WHERE cl.client_uuid = $1
+		WHERE
+			cl.beautyshop_uuid = $1 AND
+			cl.created_date >= $2 AND
+			cl.created_date <= $3
 	`, tableName)
 
-	rows, err := database.DB.GetConnection().Query(context.Background(), sql, clientUuid)
+	rows, err := database.DB.GetConnection().Query(context.Background(), sql, beautyshopUuid, startDate, endDate)
 	if err != nil {
-		fmt.Printf("Ошибка получения элементов расписания: %v", err)
+		fmt.Printf("Ошибка получения записей: %v", err)
 		return nil
 	}
 
-	var checkInItem []CheckInItem
+	var checkInItemsList []CheckInItem
 
 	for rows.Next() {
-		var item CheckInItem
-		// var beautyshop Beautyshop
-		// var worker Worker
-		// var serviceType ServiceType
-		// @TODO Получать остальные структуры
-		var tmp string
+		var checkInItem CheckInItem
+		var beautyshop Beautyshop
+		var worker Worker
+		var serviceType ServiceType
 
-		err = rows.Scan(&item.Uuid, &item.StartDate, &item.EndDate, &tmp, &tmp, &tmp, &tmp, &tmp)
+		err = rows.Scan(&checkInItem.Uuid, &checkInItem.StartDate, &checkInItem.EndDate, &checkInItem.Deleted, checkInItem.CreatedDate,
+			&beautyshop.Uuid, &beautyshop.Name, &beautyshop.City, &beautyshop.Address,
+			&worker.Uuid, &worker.FullName,
+			&serviceType.Uuid, &serviceType.Name)
 		if err != nil {
-			fmt.Printf("Ошибка получения данных элементов расписания: %v", err)
+			fmt.Printf("Ошибка получения данных записей: %v", err)
 		}
 
-		checkInItem = append(checkInItem, item)
+		// @TODO Выпилить POINT и перейти на lat/long
+		beautyshop.Coordinates = pgtype.Point{
+			Status: pgtype.Null,
+		}
+
+		checkInItem.Beautyshop = beautyshop
+		checkInItem.Worker = worker
+		checkInItem.ServiceType = serviceType
+
+		checkInItemsList = append(checkInItemsList, checkInItem)
 	}
 
-	return checkInItem
+	return checkInItemsList
 }
 
 // Создать запись в салон красоты.
@@ -118,7 +135,7 @@ func CancelCheckIn(uuid string) bool {
 	_, err := database.DB.GetConnection().Exec(context.Background(), sql, uuid)
 
 	if err != nil {
-		fmt.Printf("Ошибка при добавлении записи: %v", err)
+		fmt.Printf("Ошибка при отмене записи: %v", err)
 		return false
 	}
 

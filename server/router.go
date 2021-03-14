@@ -14,7 +14,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/beautyshop/service-types", getBeautyshopServiceTypesHandler)
 	s.router.HandleFunc("/workers", getWorkersHandler)
 	s.router.HandleFunc("/workers/add", addWorkerHandler)
-	s.router.HandleFunc("/check-in", getClientCheckInList)
+	s.router.HandleFunc("/check-in/list-for-beautyshop", getBeautyshopCheckInList)
 	s.router.HandleFunc("/check-in/create", createCheckInHandler)
 	s.router.HandleFunc("/check-in/cancel", cancelCheckInHandler)
 	s.router.HandleFunc("/client/auth", authClientHandler)
@@ -111,19 +111,21 @@ func addWorkerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getClientCheckInList(w http.ResponseWriter, r *http.Request) {
+func getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
 	}
 
-	clientUuid := r.FormValue("clientUuid")
-	if clientUuid == "" {
-		ResponseError(w, r, http.StatusBadRequest, "Не указан UUID клиента")
+	beautyshopUuid := r.FormValue("uuid")
+	startDate := r.FormValue("startDate")
+	endDate := r.FormValue("endDate")
+	if beautyshopUuid == "" || startDate == "" || endDate == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных")
 		return
 	}
 
-	checkInList := models.GetCheckInList(clientUuid, "", "")
+	checkInList := models.GetBeautyshopCheckInList(beautyshopUuid, startDate, endDate)
 	ResponseSuccess(w, http.StatusOK, checkInList)
 }
 

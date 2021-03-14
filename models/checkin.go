@@ -66,7 +66,7 @@ func GetCheckInList(clientUuid string, from string, to string) []CheckInItem {
 func CreateCheckIn(beautyshopUuid string, clientUuid string, workerUuid string, serviceTypeUuid string, startTime int64) *CheckInItem {
 	sql := fmt.Sprintf(`
 		INSERT INTO %s
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, $8)
 	`, tableName)
 
 	checkInUuid := uuid.New().String()
@@ -103,4 +103,24 @@ func CreateCheckIn(beautyshopUuid string, clientUuid string, workerUuid string, 
 	}
 
 	return &checkInItem
+}
+
+// Отменить запись
+func CancelCheckIn(uuid string) bool {
+	sql := fmt.Sprintf(`
+		UPDATE %s
+		SET
+			deleted = TRUE
+		WHERE
+			uuid = $1
+	`, tableName)
+
+	_, err := database.DB.GetConnection().Exec(context.Background(), sql, uuid)
+
+	if err != nil {
+		fmt.Printf("Ошибка при добавлении записи: %v", err)
+		return false
+	}
+
+	return true
 }

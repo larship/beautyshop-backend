@@ -14,8 +14,9 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/beautyshop/service-types", getBeautyshopServiceTypesHandler)
 	s.router.HandleFunc("/workers", getWorkersHandler)
 	s.router.HandleFunc("/workers/add", addWorkerHandler)
-	s.router.HandleFunc("/check-in-list", getClientCheckInList)
-	s.router.HandleFunc("/create-check-in", createCheckInHandler)
+	s.router.HandleFunc("/check-in", getClientCheckInList)
+	s.router.HandleFunc("/check-in/create", createCheckInHandler)
+	s.router.HandleFunc("/check-in/cancel", cancelCheckInHandler)
 	s.router.HandleFunc("/client/auth", authClientHandler)
 	s.router.HandleFunc("/client/new", newClientHandler)
 }
@@ -161,6 +162,33 @@ func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении записи")
 	}
+}
+
+type cancelCheckInParams struct {
+	Uuid string `json:"uuid"`
+}
+
+func cancelCheckInHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	var params cancelCheckInParams
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(&params); err != nil {
+		ResponseError(w, r, http.StatusBadRequest, "Произошла ошибка при парсинге запроса")
+		return
+	}
+
+	if params.Uuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных")
+		return
+	}
+
+	status := models.CancelCheckIn(params.Uuid)
+	ResponseSuccess(w, http.StatusOK, status)
 }
 
 func authClientHandler(w http.ResponseWriter, r *http.Request) {

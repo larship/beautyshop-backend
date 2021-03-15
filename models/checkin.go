@@ -23,7 +23,7 @@ type CheckInItem struct {
 
 const tableName = "checkin_list"
 
-func GetBeautyshopCheckInList(beautyshopUuid string, startDate string, endDate string) []CheckInItem {
+func GetBeautyshopCheckInList(beautyshopUuid string, dateFrom string, dateTo string) []CheckInItem {
 	// TODO Получать прайс из элемента записи
 
 	sql := fmt.Sprintf(`
@@ -42,7 +42,7 @@ func GetBeautyshopCheckInList(beautyshopUuid string, startDate string, endDate s
 			cl.created_date <= $3
 	`, tableName)
 
-	rows, err := database.DB.GetConnection().Query(context.Background(), sql, beautyshopUuid, startDate, endDate)
+	rows, err := database.DB.GetConnection().Query(context.Background(), sql, beautyshopUuid, dateFrom, dateTo)
 	if err != nil {
 		fmt.Printf("Ошибка получения записей: %v", err)
 		return nil
@@ -56,7 +56,8 @@ func GetBeautyshopCheckInList(beautyshopUuid string, startDate string, endDate s
 		var worker Worker
 		var serviceType ServiceType
 
-		err = rows.Scan(&checkInItem.Uuid, &checkInItem.StartDate, &checkInItem.EndDate, &checkInItem.Deleted, checkInItem.CreatedDate,
+		err = rows.Scan(&checkInItem.Uuid, &checkInItem.StartDate, &checkInItem.EndDate, &checkInItem.Deleted,
+			&checkInItem.CreatedDate,
 			&beautyshop.Uuid, &beautyshop.Name, &beautyshop.City, &beautyshop.Address,
 			&worker.Uuid, &worker.FullName,
 			&serviceType.Uuid, &serviceType.Name)

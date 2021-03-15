@@ -118,14 +118,14 @@ func getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	beautyshopUuid := r.FormValue("uuid")
-	startDate := r.FormValue("startDate")
-	endDate := r.FormValue("endDate")
-	if beautyshopUuid == "" || startDate == "" || endDate == "" {
+	dateFrom := r.FormValue("dateFrom")
+	dateTo := r.FormValue("dateTo")
+	if beautyshopUuid == "" || dateFrom == "" || dateTo == "" {
 		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных")
 		return
 	}
 
-	checkInList := models.GetBeautyshopCheckInList(beautyshopUuid, startDate, endDate)
+	checkInList := models.GetBeautyshopCheckInList(beautyshopUuid, dateFrom, dateTo)
 	ResponseSuccess(w, http.StatusOK, checkInList)
 }
 

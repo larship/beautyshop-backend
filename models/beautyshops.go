@@ -18,6 +18,7 @@ type Beautyshop struct {
 	CloseHour   uint16       `json:"closeHour"`
 	CreatedDate time.Time    `json:"createdDate"`
 	Workers     []*Worker    `json:"workers"`
+	Admins      []string     `json:"admins"`
 }
 
 func GetBeautyshopByUuid(beautyshopUuid string) *Beautyshop {
@@ -38,6 +39,7 @@ func GetBeautyshopByUuid(beautyshopUuid string) *Beautyshop {
 	}
 
 	beautyshop.Workers = GetWorkers(beautyshop.Uuid)
+	beautyshop.Admins = getBeautyshopAdminUuidList(beautyshop.Uuid)
 
 	return &beautyshop
 }
@@ -67,9 +69,34 @@ func GetBeautyshops(city string) []*Beautyshop {
 	}
 
 	// @TODO Запрашивать сотрудников пачкой
+	// @TODO Запрашивать администраторов пачкой
 	for _, val := range beautyshopsList {
 		val.Workers = GetWorkers(val.Uuid)
+		val.Admins = getBeautyshopAdminUuidList(val.Uuid)
 	}
 
 	return beautyshopsList
+}
+
+func getBeautyshopAdminUuidList(beautyshopUuid string) []string {
+	sql := `
+		SELECT client_uuid
+		FROM beautyshops_admins
+		WHERE beautyshop_uuid = $1
+	`
+
+	rows, err := database.DB.GetConnection().Query(context.Background(), sql, beautyshopUuid)
+	if err != nil {
+		fmt.Printf("Ошибка получения списка администраторов: %v", err)
+		return nil
+	}
+
+	var adminUuidList []string
+	for rows.Next() {
+		var uuid string
+		err = rows.Scan(&uuid)
+		adminUuidList = append(adminUuidList, uuid)
+	}
+
+	return adminUuidList
 }

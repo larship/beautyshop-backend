@@ -123,7 +123,7 @@ INSERT INTO workers_service_types (worker_uuid, service_type_uuid, price, durati
 VALUES ('42c9f442-203b-4deb-b8e7-ef2bee010494', '2e0668af-ef32-4702-9bfb-16876957431d', 1000, 60),
        ('42c9f442-203b-4deb-b8e7-ef2bee010494', '4cf6b154-e3e8-4135-915e-407943fff873', 1000, 30),
        ('42c9f442-203b-4deb-b8e7-ef2bee010494', 'f98342b8-18bd-4634-ba7d-ab0075827fd8', 1000, 30),
-       ('c380b673-ffc6-4a48-9618-9ce997a42476', '2e0668af-ef32-4702-9bfb-16876957431d', 1000, 45);
+       ('c380b673-ffc6-4a48-9618-9ce997a42476', '2e0668af-ef32-4702-9bfb-16876957431d', 1500, 45);
 
 INSERT INTO beautyshops_workers (beautyshop_uuid, worker_uuid)
 VALUES ('73b00c6d-a503-46b2-ae50-2bf609a82973', '42c9f442-203b-4deb-b8e7-ef2bee010494'),

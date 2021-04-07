@@ -15,6 +15,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/beautyshop/service-types", authMiddleware(getBeautyshopServiceTypesHandler))
 	s.router.HandleFunc("/workers", authMiddleware(getWorkersHandler))
 	s.router.HandleFunc("/workers/add", authMiddleware(addWorkerHandler))
+	s.router.HandleFunc("/check-in/list-for-client", authMiddleware(getClientCheckInList))
 	s.router.HandleFunc("/check-in/list-for-beautyshop", authMiddleware(getBeautyshopCheckInList))
 	s.router.HandleFunc("/check-in/create", authMiddleware(createCheckInHandler))
 	s.router.HandleFunc("/check-in/cancel", authMiddleware(cancelCheckInHandler))
@@ -136,6 +137,22 @@ func addWorkerHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении")
 	}
+}
+
+func getClientCheckInList(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	clientUuid := r.FormValue("uuid")
+	if clientUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан идентификатор клиента")
+		return
+	}
+
+	checkInList := models.GetClientCheckInList(clientUuid)
+	ResponseSuccess(w, http.StatusOK, checkInList)
 }
 
 func getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {

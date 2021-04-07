@@ -24,6 +24,64 @@ type CheckInItem struct {
 
 const tableName = "checkin_list"
 
+func GetClientCheckInList(clientUuid string) []CheckInItem {
+	sql := fmt.Sprintf(`
+		SELECT
+			cl.uuid, cl.start_date, cl.end_date, cl.price, cl.deleted, cl.created_date,
+			b.uuid, b.name, b.city, b.address,
+			c.uuid, c.full_name, c.phone,
+			w.uuid, w.full_name,
+			st.uuid, st.name
+		FROM %s cl
+		INNER JOIN beautyshops b ON b.uuid = cl.beautyshop_uuid
+		INNER JOIN clients c ON c.uuid = cl.client_uuid
+		INNER JOIN workers w ON w.uuid = cl.worker_uuid
+		INNER JOIN service_types st ON st.uuid = cl.service_type_uuid
+		WHERE
+			cl.client_uuid = $1
+	`, tableName)
+
+	rows, err := database.DB.GetConnection().Query(context.Background(), sql, clientUuid)
+	if err != nil {
+		fmt.Printf("Ошибка получения записей: %v", err)
+		return nil
+	}
+
+	var checkInItemsList []CheckInItem
+
+	for rows.Next() {
+		var checkInItem CheckInItem
+		var beautyshop Beautyshop
+		var client Client
+		var worker Worker
+		var serviceType ServiceType
+
+		err = rows.Scan(&checkInItem.Uuid, &checkInItem.StartDate, &checkInItem.EndDate, &checkInItem.Price,
+			&checkInItem.Deleted, &checkInItem.CreatedDate,
+			&beautyshop.Uuid, &beautyshop.Name, &beautyshop.City, &beautyshop.Address,
+			&client.Uuid, &client.FullName, &client.Phone,
+			&worker.Uuid, &worker.FullName,
+			&serviceType.Uuid, &serviceType.Name)
+		if err != nil {
+			fmt.Printf("Ошибка получения данных записей: %v", err)
+		}
+
+		// @TODO Выпилить POINT и перейти на lat/long
+		beautyshop.Coordinates = pgtype.Point{
+			Status: pgtype.Null,
+		}
+
+		checkInItem.Beautyshop = beautyshop
+		checkInItem.Client = client
+		checkInItem.Worker = worker
+		checkInItem.ServiceType = serviceType
+
+		checkInItemsList = append(checkInItemsList, checkInItem)
+	}
+
+	return checkInItemsList
+}
+
 func GetBeautyshopCheckInList(beautyshopUuid string, dateFrom string, dateTo string) []CheckInItem {
 	sql := fmt.Sprintf(`
 		SELECT

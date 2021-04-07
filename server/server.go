@@ -65,7 +65,7 @@ func gracefullyShutdown(server *http.Server, quit <-chan os.Signal, done chan<- 
 func ResponseSuccess(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")                                   // TODO Убрать
-	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token") // TODO Убрать
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token, Auth-Client-Uuid, Auth-Session-Id, Auth-Salt") // TODO Убрать
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")    // TODO Убрать
 	w.WriteHeader(statusCode)
 
@@ -77,7 +77,7 @@ func ResponseSuccess(w http.ResponseWriter, statusCode int, data interface{}) {
 func ResponseError(w http.ResponseWriter, r *http.Request, statusCode int, errorText string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")                                   // TODO Убрать
-	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token") // TODO Убрать
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token, Auth-Client-Uuid, Auth-Session-Id, Auth-Salt") // TODO Убрать
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")    // TODO Убрать
 
 	if r.Method == http.MethodOptions {

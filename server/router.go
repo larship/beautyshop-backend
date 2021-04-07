@@ -4,25 +4,52 @@ import (
 	"encoding/json"
 	"github.com/larship/beautyshop/auth"
 	"github.com/larship/beautyshop/models"
+	"log"
 	"net/http"
 )
 
 func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", mainHandler)
-	s.router.HandleFunc("/beautyshops", getBeautyshopsHandler)
-	s.router.HandleFunc("/beautyshop", getBeautyshopHandler)
-	s.router.HandleFunc("/beautyshop/service-types", getBeautyshopServiceTypesHandler)
-	s.router.HandleFunc("/workers", getWorkersHandler)
-	s.router.HandleFunc("/workers/add", addWorkerHandler)
-	s.router.HandleFunc("/check-in/list-for-beautyshop", getBeautyshopCheckInList)
-	s.router.HandleFunc("/check-in/create", createCheckInHandler)
-	s.router.HandleFunc("/check-in/cancel", cancelCheckInHandler)
+	s.router.HandleFunc("/beautyshops", authMiddleware(getBeautyshopsHandler))
+	s.router.HandleFunc("/beautyshop", authMiddleware(getBeautyshopHandler))
+	s.router.HandleFunc("/beautyshop/service-types", authMiddleware(getBeautyshopServiceTypesHandler))
+	s.router.HandleFunc("/workers", authMiddleware(getWorkersHandler))
+	s.router.HandleFunc("/workers/add", authMiddleware(addWorkerHandler))
+	s.router.HandleFunc("/check-in/list-for-beautyshop", authMiddleware(getBeautyshopCheckInList))
+	s.router.HandleFunc("/check-in/create", authMiddleware(createCheckInHandler))
+	s.router.HandleFunc("/check-in/cancel", authMiddleware(cancelCheckInHandler))
 	s.router.HandleFunc("/client/auth", authClientHandler)
 	s.router.HandleFunc("/client/new", newClientHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseError(w, r, http.StatusBadRequest, "")
+}
+
+func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		clientUuid := r.Header.Get("Auth-Client-Uuid")
+		sessionId := r.Header.Get("Auth-Session-Id")
+		salt := r.Header.Get("Auth-Salt")
+
+		log.Printf("AuthMiddleware: clientUuid = %s, sessionId = %s, salt = %s", clientUuid, sessionId, salt)
+
+		if clientUuid == "" || sessionId == "" || salt == "" {
+			ResponseError(w, r, http.StatusForbidden, "Ошибка аутентификации")
+			return
+		}
+
+		client := auth.CheckAuth(clientUuid, sessionId, salt)
+
+		if client == nil {
+			ResponseError(w, r, http.StatusForbidden, "Ошибка аутентификации")
+			return
+		}
+
+		log.Printf("AuthMiddleware: успешная авторизация")
+
+		next(w, r)
+	}
 }
 
 func getBeautyshopServiceTypesHandler(w http.ResponseWriter, r *http.Request) {

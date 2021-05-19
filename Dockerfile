@@ -2,7 +2,7 @@ FROM golang:1.14-alpine as builder
 
 # ENV GO111MODULE=on
 
-LABEL maintainer="Anton Kovalenko <CaribbeanLegend@@mail.ru>"
+LABEL maintainer="Anton Kovalenko <CaribbeanLegend@mail.ru>"
 
 RUN apk update && apk add --no-cache git
 WORKDIR /app

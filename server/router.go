@@ -10,8 +10,9 @@ import (
 
 func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", mainHandler)
-	s.router.HandleFunc("/beautyshops", authMiddleware(getBeautyshopsHandler))
+	s.router.HandleFunc("/beautyshops", authMiddleware(getBeautyshopsHandler)) // TODO /beautyshop/list
 	s.router.HandleFunc("/beautyshop", authMiddleware(getBeautyshopHandler))
+	s.router.HandleFunc("/beautyshop/list-for-admin", authMiddleware(getBeautyshopListByAdminHandler))
 	s.router.HandleFunc("/beautyshop/service-types", authMiddleware(getBeautyshopServiceTypesHandler))
 	s.router.HandleFunc("/workers", authMiddleware(getWorkersHandler))
 	s.router.HandleFunc("/workers/add", authMiddleware(addWorkerHandler))
@@ -98,6 +99,22 @@ func getBeautyshopHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	beautyshop := models.GetBeautyshopByUuid(beautyshopUuid)
+	ResponseSuccess(w, http.StatusOK, beautyshop)
+}
+
+func getBeautyshopListByAdminHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	adminUuid := r.URL.Query().Get("adminUuid")
+	if adminUuid == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан идентификатор администратора")
+		return
+	}
+
+	beautyshop := models.GetBeautyshopListByAdmin(adminUuid)
 	ResponseSuccess(w, http.StatusOK, beautyshop)
 }
 

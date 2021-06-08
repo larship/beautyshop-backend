@@ -22,6 +22,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/check-in/cancel", authMiddleware(cancelCheckInHandler))
 	s.router.HandleFunc("/client/auth", authClientHandler)
 	s.router.HandleFunc("/client/new", newClientHandler)
+	s.router.HandleFunc("/admin/auth", authAdminHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -270,6 +271,29 @@ func authClientHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := auth.CheckAuth(clientUuid, sessionId, salt)
+
+	if client != nil {
+		ResponseSuccess(w, http.StatusOK, client)
+	} else {
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка при авторизации")
+	}
+}
+
+func authAdminHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	phone := r.FormValue("phone")
+	code := r.FormValue("code")
+
+	if phone == "" || code == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных для аутентификации администратора")
+		return
+	}
+
+	client := auth.CheckAdminAuth(phone, code)
 
 	if client != nil {
 		ResponseSuccess(w, http.StatusOK, client)

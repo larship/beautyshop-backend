@@ -52,6 +52,30 @@ func CheckAuth(clientUuid string, sessionId string, salt string) *models.Client 
 	return nil
 }
 
+func CheckAdminAuth(phone string, code string) *models.Client {
+	var client models.Client
+
+	sql := `
+		SELECT c.*
+		FROM clients c
+		INNER JOIN beautyshops_admins ba ON ba.client_uuid = c.uuid
+		WHERE c.phone = $1
+		LIMIT 1
+	`
+
+	err := database.DB.GetConnection().QueryRow(context.Background(), sql, phone).Scan(&client.Uuid, &client.FullName,
+		&client.Phone, &client.SessionId, &client.SessionPrivateId, &client.Salt)
+
+	if err != nil {
+		fmt.Printf("Ошибка получения клиента: %v", err)
+		return nil
+	}
+
+	// @todo Проверять code
+
+	return &client
+}
+
 func CreateUser(fullName string, phone string) *models.Client {
 	clientUuid := uuid.New().String()
 

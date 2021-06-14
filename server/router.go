@@ -6,7 +6,20 @@ import (
 	"github.com/larship/beautyshop/models"
 	"log"
 	"net/http"
+	"regexp"
 )
+
+type createCheckInParams struct {
+	BeautyshopUuid  string `json:"beautyshopUuid"`
+	ClientUuid      string `json:"clientUuid"`
+	WorkerUuid      string `json:"workerUuid"`
+	ServiceTypeUuid string `json:"serviceTypeUuid"`
+	StartDate       int64  `json:"startDate"`
+}
+
+type cancelCheckInParams struct {
+	Uuid string `json:"uuid"`
+}
 
 func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", mainHandler)
@@ -23,6 +36,7 @@ func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/client/auth", authClientHandler)
 	s.router.HandleFunc("/client/new", newClientHandler)
 	s.router.HandleFunc("/admin/auth", authAdminHandler)
+	s.router.HandleFunc("/admin/send-security-code", sendSecurityCodeHandler)
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -191,14 +205,6 @@ func getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, checkInList)
 }
 
-type createCheckInParams struct {
-	BeautyshopUuid  string `json:"beautyshopUuid"`
-	ClientUuid      string `json:"clientUuid"`
-	WorkerUuid      string `json:"workerUuid"`
-	ServiceTypeUuid string `json:"serviceTypeUuid"`
-	StartDate       int64  `json:"startDate"`
-}
-
 func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
@@ -226,10 +232,6 @@ func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении записи")
 	}
-}
-
-type cancelCheckInParams struct {
-	Uuid string `json:"uuid"`
 }
 
 func cancelCheckInHandler(w http.ResponseWriter, r *http.Request) {
@@ -279,29 +281,6 @@ func authClientHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func authAdminHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		ResponseError(w, r, http.StatusBadRequest, "")
-		return
-	}
-
-	phone := r.FormValue("phone")
-	code := r.FormValue("code")
-
-	if phone == "" || code == "" {
-		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных для аутентификации администратора")
-		return
-	}
-
-	client := auth.CheckAdminAuth(phone, code)
-
-	if client != nil {
-		ResponseSuccess(w, http.StatusOK, client)
-	} else {
-		ResponseError(w, r, http.StatusBadRequest, "Ошибка при авторизации")
-	}
-}
-
 func newClientHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
@@ -323,4 +302,54 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		ResponseError(w, r, http.StatusBadRequest, "Ошибка при добавлении клиента")
 	}
+}
+
+func authAdminHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	re := regexp.MustCompile(`\D`)
+
+	phone := string(re.ReplaceAll([]byte(r.FormValue("phone")), []byte("")))
+	code := string(re.ReplaceAll([]byte(r.FormValue("code")), []byte("")))
+
+	if phone == "" || code == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Недостаточно данных для аутентификации администратора")
+		return
+	}
+
+	client := auth.CheckAdminAuth(phone, code)
+
+	if client != nil {
+		ResponseSuccess(w, http.StatusOK, client)
+	} else {
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка при авторизации")
+	}
+}
+
+func sendSecurityCodeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		ResponseError(w, r, http.StatusBadRequest, "")
+		return
+	}
+
+	re := regexp.MustCompile(`\D`)
+
+	phone := string(re.ReplaceAll([]byte(r.FormValue("phone")), []byte("")))
+
+	if phone == "" {
+		ResponseError(w, r, http.StatusBadRequest, "Не указан телефон для отправки кода подтверждения")
+		return
+	}
+
+	status := auth.SendSecurityCode(phone)
+
+	if !status {
+		ResponseError(w, r, http.StatusBadRequest, "Ошибка отправки кода")
+		return
+	}
+
+	ResponseSuccess(w, http.StatusOK, status)
 }

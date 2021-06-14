@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/larship/beautyshop/api"
 	"github.com/larship/beautyshop/database"
 	"github.com/larship/beautyshop/models"
 	"math/rand"
@@ -58,30 +59,6 @@ func CheckAuth(clientUuid string, sessionId string, salt string) *models.Client 
 	return nil
 }
 
-func CheckAdminAuth(phone string, code string) *models.Client {
-	var client models.Client
-
-	sql := `
-		SELECT c.*
-		FROM clients c
-		INNER JOIN beautyshops_admins ba ON ba.client_uuid = c.uuid
-		WHERE c.phone = $1
-		LIMIT 1
-	`
-
-	err := database.DB.GetConnection().QueryRow(context.Background(), sql, phone).Scan(&client.Uuid, &client.FullName,
-		&client.Phone, &client.SessionId, &client.SessionPrivateId, &client.Salt)
-
-	if err != nil {
-		fmt.Printf("Ошибка получения клиента: %v", err)
-		return nil
-	}
-
-	// @todo Проверять code
-
-	return &client
-}
-
 func CreateUser(fullName string, phone string) *models.Client {
 	clientUuid := uuid.New().String()
 
@@ -118,4 +95,98 @@ func CreateUser(fullName string, phone string) *models.Client {
 		SessionPrivateId: sessionPrivateIdHashStr,
 		Salt:             saltHashStr,
 	}
+}
+
+func getAdminByPhone(phone string) (*models.Client, error) {
+	var client models.Client
+
+	sql := `
+		SELECT c.*
+		FROM clients c
+		INNER JOIN beautyshops_admins ba ON ba.client_uuid = c.uuid
+		WHERE c.phone = $1
+		LIMIT 1
+	`
+
+	err := database.DB.GetConnection().QueryRow(context.Background(), sql, phone).Scan(&client.Uuid, &client.FullName,
+		&client.Phone, &client.SessionId, &client.SessionPrivateId, &client.Salt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &client, nil
+}
+
+func CheckAdminAuth(phone string, code string) *models.Client {
+	client, err := getAdminByPhone(phone)
+
+	if err != nil || client == nil {
+		fmt.Printf("Ошибка получения клиента: %v", err)
+		return nil
+	}
+
+	sql := `
+		SELECT TRUE
+		FROM (
+				 SELECT *
+				 FROM security_codes
+				 WHERE
+					phone = $1 AND
+					status = 'success' AND
+					send_time >= NOW() - INTERVAL '1 HOUR'
+				 ORDER BY send_time DESC
+				 LIMIT 1
+			 ) t
+		WHERE code = $2
+	`
+
+	codeCorrect := false
+
+	err = database.DB.GetConnection().QueryRow(context.Background(), sql, phone, code).Scan(&codeCorrect)
+
+	if err != nil || !codeCorrect {
+		fmt.Printf("Ошибка проверки кода: %v", err)
+		return nil
+	}
+
+	return client
+}
+
+func SendSecurityCode(phone string) bool {
+	client, err := getAdminByPhone(phone)
+
+	if err != nil || client == nil {
+		fmt.Printf("Ошибка получения клиента: %v", err)
+		return false
+	}
+
+	code := randomString(5, true)
+	err = api.SendSms(phone, code)
+
+	status := "success"
+	errorText := ""
+	if err != nil {
+		status = "error"
+		errorText = err.Error()
+	}
+
+	codeUuid := uuid.New().String()
+	sql := `
+		INSERT INTO security_codes
+		VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+	`
+
+	_, err = database.DB.GetConnection().Exec(context.Background(), sql, codeUuid, phone, code, status, errorText)
+
+	if err != nil {
+		fmt.Printf("Ошибка сохранения кода подтверждения: %v", err)
+		return false
+	}
+
+	if status == "error" {
+		return false
+	}
+
+	return true
 }

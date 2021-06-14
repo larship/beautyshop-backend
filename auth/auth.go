@@ -13,10 +13,16 @@ import (
 
 const serverSalt = "dg353hy034"
 
-func RandomString(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+func randomString(length int, onlyNums bool) string {
+	var letters []rune
 
-	s := make([]rune, n)
+	if !onlyNums {
+		letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	} else {
+		letters = []rune("0123456789")
+	}
+
+	s := make([]rune, length)
 	for i := range s {
 		s[i] = letters[rand.Intn(len(letters))]
 	}
@@ -79,10 +85,10 @@ func CheckAdminAuth(phone string, code string) *models.Client {
 func CreateUser(fullName string, phone string) *models.Client {
 	clientUuid := uuid.New().String()
 
-	sessionIdHash := sha256.Sum256([]byte(RandomString(32)))
+	sessionIdHash := sha256.Sum256([]byte(randomString(32, false)))
 	sessionIdHashStr := hex.EncodeToString(sessionIdHash[:])
 
-	saltHash := sha256.Sum256([]byte(RandomString(32)))
+	saltHash := sha256.Sum256([]byte(randomString(32, false)))
 	saltHashStr := hex.EncodeToString(saltHash[:])
 
 	serverSaltHash := sha256.Sum256([]byte(serverSalt))

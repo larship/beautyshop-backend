@@ -85,7 +85,9 @@ CREATE TABLE checkin_list
 -- Таблица записей клиентов на стрижку (@TODO перенести в отдельный сервис)
 CREATE TABLE clients
 (
-    uuid               UUID NOT NULL,
+    uuid               UUID NOT NULL
+        CONSTRAINT clients_pk
+            PRIMARY KEY,
     full_name          VARCHAR,
     phone              VARCHAR,
     session_id         VARCHAR,
@@ -93,4 +95,20 @@ CREATE TABLE clients
     salt               VARCHAR
 
 );
-CREATE UNIQUE INDEX clients_unique_index ON clients (phone);
+CREATE UNIQUE INDEX clients_name_unique_index ON clients (phone);
+
+-- Таблица проверочных кодов (@TODO перенести в отдельный сервис)
+CREATE TABLE security_codes
+(
+    uuid       UUID                        NOT NULL
+        CONSTRAINT security_codes_pk
+            PRIMARY KEY,
+    phone      VARCHAR                     NOT NULL,
+    code       VARCHAR                     NOT NULL,
+    status     VARCHAR                     NOT NULL,
+    error_text VARCHAR                     NOT NULL,
+    send_time  TIMESTAMP WITHOUT TIME ZONE NOT NULL
+);
+CREATE INDEX security_codes_phone_index ON security_codes (phone);
+CREATE INDEX security_codes_status_index ON security_codes (status);
+CREATE INDEX security_codes_send_time_index ON security_codes (send_time);

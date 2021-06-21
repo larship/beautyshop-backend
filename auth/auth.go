@@ -162,10 +162,10 @@ func SendSecurityCode(phone string) bool {
 	}
 
 	code := randomString(5, true)
-	err = api.SendSms(phone, code)
-
 	status := "success"
 	errorText := ""
+
+	_, err = api.SendSMS(phone, "Код для входа: " + code)
 	if err != nil {
 		status = "error"
 		errorText = err.Error()

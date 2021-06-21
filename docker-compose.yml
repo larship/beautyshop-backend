@@ -23,13 +23,11 @@ services:
       POSTGRES_PASSWORD: beautyshop456498
       POSTGRES_DB: beautyshop
     ports:
-      - '5432:5432'
+      - 5432:5432
     volumes:
       - database_postgres:/var/lib/postgresql/data
     networks:
       - app_network
-
-# TODO Вынести migration в отдельный контейнер
 
 volumes:
   api:

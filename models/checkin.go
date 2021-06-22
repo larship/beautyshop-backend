@@ -99,6 +99,7 @@ func GetBeautyshopCheckInList(beautyshopUuid string, dateFrom string, dateTo str
 			cl.beautyshop_uuid = $1 AND
 			cl.start_date >= $2 AND
 			cl.start_date <= $3
+		ORDER BY cl.start_date DESC
 	`, tableName)
 
 	rows, err := database.DB.GetConnection().Query(context.Background(), sql, beautyshopUuid, dateFrom, dateTo)

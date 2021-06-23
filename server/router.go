@@ -22,28 +22,28 @@ type cancelCheckInParams struct {
 }
 
 func (s *Server) MakeRoutes() {
-	s.router.HandleFunc("/", mainHandler)
-	s.router.HandleFunc("/beautyshops", authMiddleware(getBeautyshopsHandler)) // TODO /beautyshop/list
-	s.router.HandleFunc("/beautyshop", authMiddleware(getBeautyshopHandler))
-	s.router.HandleFunc("/beautyshop/list-for-admin", authMiddleware(getBeautyshopListByAdminHandler))
-	s.router.HandleFunc("/beautyshop/service-types", authMiddleware(getBeautyshopServiceTypesHandler))
-	s.router.HandleFunc("/workers", authMiddleware(getWorkersHandler))
-	s.router.HandleFunc("/workers/add", authMiddleware(addWorkerHandler))
-	s.router.HandleFunc("/check-in/list-for-client", authMiddleware(getClientCheckInList))
-	s.router.HandleFunc("/check-in/list-for-beautyshop", authMiddleware(getBeautyshopCheckInList))
-	s.router.HandleFunc("/check-in/create", authMiddleware(createCheckInHandler))
-	s.router.HandleFunc("/check-in/cancel", authMiddleware(cancelCheckInHandler))
-	s.router.HandleFunc("/client/auth", authClientHandler)
-	s.router.HandleFunc("/client/new", newClientHandler)
-	s.router.HandleFunc("/admin/auth", authAdminHandler)
-	s.router.HandleFunc("/admin/send-security-code", sendSecurityCodeHandler)
+	s.router.HandleFunc("/", s.mainHandler)
+	s.router.HandleFunc("/beautyshops", s.authMiddleware(s.getBeautyshopsHandler)) // TODO /beautyshop/list
+	s.router.HandleFunc("/beautyshop", s.authMiddleware(s.getBeautyshopHandler))
+	s.router.HandleFunc("/beautyshop/list-for-admin", s.authMiddleware(s.getBeautyshopListByAdminHandler))
+	s.router.HandleFunc("/beautyshop/service-types", s.authMiddleware(s.getBeautyshopServiceTypesHandler))
+	s.router.HandleFunc("/workers", s.authMiddleware(s.getWorkersHandler))
+	s.router.HandleFunc("/workers/add", s.authMiddleware(s.addWorkerHandler))
+	s.router.HandleFunc("/check-in/list-for-client", s.authMiddleware(s.getClientCheckInList))
+	s.router.HandleFunc("/check-in/list-for-beautyshop", s.authMiddleware(s.getBeautyshopCheckInList))
+	s.router.HandleFunc("/check-in/create", s.authMiddleware(s.createCheckInHandler))
+	s.router.HandleFunc("/check-in/cancel", s.authMiddleware(s.cancelCheckInHandler))
+	s.router.HandleFunc("/client/auth", s.authClientHandler)
+	s.router.HandleFunc("/client/new", s.newClientHandler)
+	s.router.HandleFunc("/admin/auth", s.authAdminHandler)
+	s.router.HandleFunc("/admin/send-security-code", s.sendSecurityCodeHandler)
 }
 
-func mainHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseError(w, r, http.StatusBadRequest, "")
 }
 
-func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func (s *Server) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		clientUuid := r.Header.Get("Auth-Client-Uuid")
 		sessionId := r.Header.Get("Auth-Session-Id")
@@ -69,7 +69,7 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func getBeautyshopServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getBeautyshopServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -85,7 +85,7 @@ func getBeautyshopServiceTypesHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, serviceTypeList)
 }
 
-func getBeautyshopsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getBeautyshopsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -101,7 +101,7 @@ func getBeautyshopsHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, beautyshopList)
 }
 
-func getBeautyshopHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getBeautyshopHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -117,7 +117,7 @@ func getBeautyshopHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, beautyshop)
 }
 
-func getBeautyshopListByAdminHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getBeautyshopListByAdminHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -133,7 +133,7 @@ func getBeautyshopListByAdminHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, beautyshop)
 }
 
-func getWorkersHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getWorkersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -149,7 +149,7 @@ func getWorkersHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, workersList)
 }
 
-func addWorkerHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) addWorkerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -171,7 +171,7 @@ func addWorkerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getClientCheckInList(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getClientCheckInList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -187,7 +187,7 @@ func getClientCheckInList(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, checkInList)
 }
 
-func getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -205,7 +205,7 @@ func getBeautyshopCheckInList(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, checkInList)
 }
 
-func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) createCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -234,7 +234,7 @@ func createCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func cancelCheckInHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) cancelCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -257,7 +257,7 @@ func cancelCheckInHandler(w http.ResponseWriter, r *http.Request) {
 	ResponseSuccess(w, http.StatusOK, status)
 }
 
-func authClientHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) authClientHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -281,7 +281,7 @@ func authClientHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func newClientHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) newClientHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -304,7 +304,7 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func authAdminHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) authAdminHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -329,7 +329,7 @@ func authAdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendSecurityCodeHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) sendSecurityCodeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		ResponseError(w, r, http.StatusBadRequest, "")
 		return
@@ -344,7 +344,7 @@ func sendSecurityCodeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := auth.SendSecurityCode(phone)
+	status := auth.SendSecurityCode(phone, s.config)
 
 	if !status {
 		ResponseError(w, r, http.StatusBadRequest, "Ошибка отправки кода")

@@ -1,25 +1,53 @@
 package config
 
 import (
-	"flag"
+	"bufio"
+	"log"
+	"os"
+	"strings"
 )
 
 type Config struct {
 	DatabaseDsn      string
 	WebServerAddress string
+	Smsc             smscConfig
+}
+
+type smscConfig struct {
+	Login    string
+	Password string
+	Sender   string
 }
 
 func Init() *Config {
-	// @todo Заполнять значения по-умолчанию на основе переменных окружения (environment variables)
-	// Либо передавать во флаги переменные окружения, например, go run . -web-server-address="$BEAUTYSHOP_WEB_SERVER_ADDRESS"
-	databaseDsn := flag.String("database-dsn", "postgresql://beautyshop:beautyshop456498@localhost:5432/beautyshop", "DSN для подключения к БД")
-	webServerAddress := flag.String("web-server-address", ":8080", "Адрес, который будет слушать веб-сервер")
-	flag.Parse()
+	file, err := os.Open(".env")
+
+	if err != nil {
+		log.Printf("Ошибка при создании веб-сервера: %s", err.Error())
+		return nil
+	}
+
+	defer file.Close()
+
+	configData := map[string]string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		params := strings.Split(scanner.Text(), "=")
+		configData[params[0]] = params[1]
+	}
 
 	conf := &Config{
-		DatabaseDsn:      *databaseDsn,
-		WebServerAddress: *webServerAddress,
+		DatabaseDsn: "postgresql://" + configData["DATABASE_USER"] + ":" + configData["DATABASE_PASSWORD"] + "@" +
+			configData["DATABASE_HOST"] + "/" + configData["DATABASE_NAME"],
+		WebServerAddress: configData["SWEB_SERVER_ADDRESS"],
+		Smsc: smscConfig{
+			Login:    configData["SMSC_LOGIN"],
+			Password: configData["SMSC_PASSWORD"],
+			Sender:   configData["SMSC_SENDER"],
+		},
 	}
+
+	log.Printf("Конфиг: %+v", conf)
 
 	return conf
 }

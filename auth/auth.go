@@ -6,9 +6,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/larship/beautyshop/api"
+	"github.com/larship/beautyshop/config"
 	"github.com/larship/beautyshop/database"
 	"github.com/larship/beautyshop/models"
+	"github.com/larship/smsc"
 	"math/rand"
 )
 
@@ -153,7 +154,7 @@ func CheckAdminAuth(phone string, code string) *models.Client {
 	return client
 }
 
-func SendSecurityCode(phone string) bool {
+func SendSecurityCode(phone string, conf *config.Config) bool {
 	client, err := getAdminByPhone(phone)
 
 	if err != nil || client == nil {
@@ -165,7 +166,9 @@ func SendSecurityCode(phone string) bool {
 	status := "success"
 	errorText := ""
 
-	_, err = api.SendSMS(phone, "Код для входа: " + code)
+	smscClient := smsc.New(conf.Smsc.Login, conf.Smsc.Password)
+	smscClient.SetSender(conf.Smsc.Sender)
+	_, err = smscClient.SendSms(phone, "Код для входа: " + code)
 	if err != nil {
 		status = "error"
 		errorText = err.Error()

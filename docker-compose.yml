@@ -19,9 +19,9 @@ services:
     image: postgres:latest
     environment:
       TZ: 'Asia/Vladivostok'
-      POSTGRES_USER: beautyshop
-      POSTGRES_PASSWORD: beautyshop456498
-      POSTGRES_DB: beautyshop
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
     ports:
       - 5432:5432
     volumes:

@@ -11,15 +11,15 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY ./ ./
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./main ./
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /root/
+WORKDIR /root
 
-COPY --from=builder /app/main ./
+COPY --from=builder /app/main /app/.env ./
 
 EXPOSE 8080
 
-ENTRYPOINT ["./main", "-database-dsn=postgresql://beautyshop:beautyshop456498@database:5432/beautyshop"]
+ENTRYPOINT ["./main"]

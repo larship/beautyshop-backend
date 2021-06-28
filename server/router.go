@@ -23,8 +23,8 @@ type cancelCheckInParams struct {
 
 func (s *Server) MakeRoutes() {
 	s.router.HandleFunc("/", s.mainHandler)
-	s.router.HandleFunc("/beautyshops", s.authMiddleware(s.getBeautyshopsHandler)) // TODO /beautyshop/list
 	s.router.HandleFunc("/beautyshop", s.authMiddleware(s.getBeautyshopHandler))
+	s.router.HandleFunc("/beautyshop/list", s.authMiddleware(s.getBeautyshopsHandler))
 	s.router.HandleFunc("/beautyshop/list-for-admin", s.authMiddleware(s.getBeautyshopListByAdminHandler))
 	s.router.HandleFunc("/beautyshop/service-types", s.authMiddleware(s.getBeautyshopServiceTypesHandler))
 	s.router.HandleFunc("/workers", s.authMiddleware(s.getWorkersHandler))

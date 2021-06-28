@@ -4,6 +4,8 @@ services:
   app:
     container_name: app_container
     build: ./
+    env_file:
+      - .env
     ports:
       - 8080:8080
     restart: on-failure

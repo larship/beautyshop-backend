@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bufio"
 	"log"
 	"os"
 	"strings"
@@ -20,19 +19,9 @@ type smscConfig struct {
 }
 
 func Init() *Config {
-	file, err := os.Open(".env")
-
-	if err != nil {
-		log.Printf("Ошибка при создании веб-сервера: %s", err.Error())
-		return nil
-	}
-
-	defer file.Close()
-
 	configData := map[string]string{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		params := strings.Split(scanner.Text(), "=")
+	for _, val := range os.Environ() {
+		params := strings.Split(val, "=")
 		configData[params[0]] = params[1]
 	}
 

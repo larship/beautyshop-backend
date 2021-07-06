@@ -13,6 +13,7 @@ type Beautyshop struct {
 	Name        string       `json:"name"`
 	City        string       `json:"city"`
 	Address     string       `json:"address"`
+	Phones      []string     `json:"phones"`
 	Coordinates pgtype.Point `json:"coordinates"`
 	OpenHour    uint16       `json:"openHour"`
 	CloseHour   uint16       `json:"closeHour"`
@@ -46,10 +47,12 @@ func GetBeautyshopByUuid(beautyshopUuid string) *Beautyshop {
 
 func GetBeautyshopListByAdmin(adminUuid string) []*Beautyshop {
 	sql := `
-		SELECT b.*
+		SELECT b.*, array_agg(bc.phone)
 		FROM beautyshops b
 		INNER JOIN beautyshops_admins ba ON ba.beautyshop_uuid = b.uuid
+		LEFT JOIN beautyshops_contacts bc ON bc.beautyshop_uuid = b.uuid
 		WHERE ba.client_uuid = $1
+		GROUP BY b.uuid
 	`
 
 	rows, err := database.DB.GetConnection().Query(context.Background(), sql, adminUuid)
@@ -63,7 +66,7 @@ func GetBeautyshopListByAdmin(adminUuid string) []*Beautyshop {
 		var beautyshopItem Beautyshop
 		err = rows.Scan(&beautyshopItem.Uuid, &beautyshopItem.Name, &beautyshopItem.City,
 			&beautyshopItem.Address, &beautyshopItem.Coordinates, &beautyshopItem.OpenHour, &beautyshopItem.CloseHour,
-			&beautyshopItem.CreatedDate)
+			&beautyshopItem.CreatedDate, &beautyshopItem.Phones)
 
 		beautyshopsList = append(beautyshopsList, &beautyshopItem)
 	}
@@ -80,10 +83,12 @@ func GetBeautyshopListByAdmin(adminUuid string) []*Beautyshop {
 
 func GetBeautyshops(city string) []*Beautyshop {
 	sql := `
-		SELECT *
-		FROM beautyshops
-		WHERE city = $1
-		ORDER BY created_date ASC
+		SELECT b.*, array_agg(bc.phone)
+		FROM beautyshops b
+		LEFT JOIN beautyshops_contacts bc ON bc.beautyshop_uuid = b.uuid
+		WHERE b.city = $1
+		GROUP BY b.uuid
+		ORDER BY b.created_date ASC
 	`
 
 	rows, err := database.DB.GetConnection().Query(context.Background(), sql, city)
@@ -97,7 +102,7 @@ func GetBeautyshops(city string) []*Beautyshop {
 		var beautyshopItem Beautyshop
 		err = rows.Scan(&beautyshopItem.Uuid, &beautyshopItem.Name, &beautyshopItem.City,
 			&beautyshopItem.Address, &beautyshopItem.Coordinates, &beautyshopItem.OpenHour, &beautyshopItem.CloseHour,
-			&beautyshopItem.CreatedDate)
+			&beautyshopItem.CreatedDate, &beautyshopItem.Phones)
 
 		beautyshopsList = append(beautyshopsList, &beautyshopItem)
 	}

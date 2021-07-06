@@ -29,6 +29,15 @@ CREATE TABLE beautyshops
 );
 CREATE UNIQUE INDEX beautyshops_unique_index ON beautyshops (name, city);
 
+-- Таблица контактов
+CREATE TABLE beautyshops_contacts
+(
+    beautyshop_uuid UUID NOT NULL,
+    phone           VARCHAR
+);
+CREATE INDEX beautyshops_contacts_uuid_index ON beautyshops_contacts (beautyshop_uuid);
+CREATE INDEX beautyshops_contacts_phone_index ON beautyshops_contacts (phone);
+
 -- Таблица мастеров салона красоты
 CREATE TABLE workers
 (
@@ -82,7 +91,7 @@ CREATE TABLE checkin_list
     created_date      TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
--- Таблица записей клиентов на стрижку (@TODO перенести в отдельный сервис)
+-- Таблица записей клиентов
 CREATE TABLE clients
 (
     uuid               UUID NOT NULL

@@ -39,6 +39,7 @@ func GetClientCheckInList(clientUuid string) []CheckInItem {
 		INNER JOIN service_types st ON st.uuid = cl.service_type_uuid
 		WHERE
 			cl.client_uuid = $1
+		ORDER BY cl.start_date DESC
 	`, tableName)
 
 	rows, err := database.DB.GetConnection().Query(context.Background(), sql, clientUuid)

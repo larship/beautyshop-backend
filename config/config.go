@@ -27,8 +27,8 @@ func Init() *Config {
 
 	conf := &Config{
 		DatabaseDsn: "postgresql://" + configData["DATABASE_USER"] + ":" + configData["DATABASE_PASSWORD"] + "@" +
-			configData["DATABASE_HOST"] + "/" + configData["DATABASE_NAME"],
-		WebServerAddress: configData["WEB_SERVER_ADDRESS"],
+			configData["DATABASE_HOST"] + ":" + configData["DATABASE_PORT"] + "/" + configData["DATABASE_NAME"],
+		WebServerAddress: configData["WEB_SERVER_HOST"] + ":" + configData["WEB_SERVER_PORT"],
 		Smsc: smscConfig{
 			Login:    configData["SMSC_LOGIN"],
 			Password: configData["SMSC_PASSWORD"],

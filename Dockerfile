@@ -20,6 +20,4 @@ WORKDIR /root
 
 COPY --from=builder /app/main /app/.env ./
 
-EXPOSE 8080
-
 ENTRYPOINT ["./main"]
